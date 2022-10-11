@@ -9,7 +9,25 @@ namespace AlienEscape
 {
     public class AlienEscape : PhysicsGame
     {
-        private static readonly String[] kenttamj = {
+        public override void Begin()
+        {
+            LuoKentta();
+
+            Gravity = new Vector(0, -500);
+
+            Level.CreateBorders();
+            Camera.ZoomToLevel();
+
+            PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
+            Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+        }
+
+        /// <summary>
+        /// Luodaan kenttä
+        /// </summary>
+        private void LuoKentta()
+        {
+            String[] kenttamj = {
 
             "XXXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXXX",
@@ -24,12 +42,11 @@ namespace AlienEscape
             "X12 D   XXXXXXX XXXX",
             "===============A====",
 
-        };
+            };
 
-        private static readonly int tileWidth = 800 / (kenttamj[0].Length);
-        private static readonly int tileHeight = 480 / kenttamj.Length;
-        public override void Begin()
-        {
+            int tileWidth = 1600 / (kenttamj[0].Length);
+            int tileHeight = 960 / kenttamj.Length;
+
             Level.Background.CreateGradient(Color.Blue, Color.White);
             TileMap kentta = TileMap.FromStringArray(kenttamj);
 
@@ -48,17 +65,16 @@ namespace AlienEscape
             // TODO: kentta.SetTileMethod('E', LuoExit);
 
             kentta.Execute(tileWidth, tileHeight); // Luodaan kenttä
-
-            Level.CreateBorders();
-            Camera.ZoomToLevel();
-
-            PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
-            Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
         }
-
-        private void LuoPalikka(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// Luodaan kentän rakenneosat
+    /// </summary>
+    /// <param name="paikka"></param>
+    /// <param name="leveys"></param>
+    /// <param name="korkeus"></param>
+    private void LuoPalikka(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject palikka = new PhysicsObject(leveys-3, korkeus-3);
+            PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys-3, korkeus-3);
             palikka.Position = paikka;
             //TODO: palikka.Image = 
             Add(palikka);
