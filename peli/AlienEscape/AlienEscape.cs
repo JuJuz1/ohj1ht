@@ -47,12 +47,12 @@ namespace AlienEscape
             int tileWidth = 1600 / (kenttamj[0].Length);
             int tileHeight = 960 / kenttamj.Length;
 
-            Level.Background.CreateGradient(Color.Blue, Color.White);
+            Level.Background.CreateGradient(Color.BloodRed, Color.Azure);
             TileMap kentta = TileMap.FromStringArray(kenttamj);
 
             kentta.SetTileMethod('X', LuoPalikka);
             kentta.SetTileMethod('=', LuoPalikka);
-            // TODO: kentta.SetTileMethod('A', LuoPiikki);
+            kentta.SetTileMethod('A', LuoPiikki);
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
             // TODO: kentta.SetTileMethod('D', LuoOvi);
@@ -69,15 +69,29 @@ namespace AlienEscape
     /// <summary>
     /// Luodaan kentän rakenneosat
     /// </summary>
-    /// <param name="paikka"></param>
-    /// <param name="leveys"></param>
-    /// <param name="korkeus"></param>
+    /// <param name="paikka">Mihin palikka syntyy</param>
+    /// <param name="leveys">Palikan leveys</param>
+    /// <param name="korkeus">Palikan korkeus</param>
     private void LuoPalikka(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys-3, korkeus-3);
             palikka.Position = paikka;
             //TODO: palikka.Image = 
             Add(palikka);
+        }
+
+        /// <summary>
+        /// Luodaan piikki
+        /// </summary>
+        /// <param name="paikka"></param>
+        /// <param name="leveys"></param>
+        /// <param name="korkeus"></param>
+        private void LuoPiikki(Vector paikka, double leveys, double korkeus)
+        {
+            PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys - 3, korkeus - 3);
+            piikki.Position = paikka;
+            //TODO: piikki.Image = 
+            Add(piikki);
         }
     }
 }
