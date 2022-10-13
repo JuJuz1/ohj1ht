@@ -20,6 +20,10 @@ namespace AlienEscape
 
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+
+            Image piikki1 = LoadImage("piikki.png");
+            Shape piikki2 = Shape.FromImage(piikki1);
+
         }
 
         /// <summary>
@@ -44,10 +48,10 @@ namespace AlienEscape
 
             };
 
-            int tileWidth = 1600 / (kenttamj[0].Length);
+            int tileWidth = 1600 / kenttamj[0].Length;
             int tileHeight = 960 / kenttamj.Length;
 
-            Level.Background.CreateGradient(Color.BloodRed, Color.Azure);
+            Level.Background.Image = LoadImage("luola.png");
             TileMap kentta = TileMap.FromStringArray(kenttamj);
 
             kentta.SetTileMethod('X', LuoPalikka);
@@ -56,7 +60,7 @@ namespace AlienEscape
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
             // TODO: kentta.SetTileMethod('D', LuoOvi);
-            // TODO: kentta.SetTileMethod('B', LuoPainike);
+            // TODO: kentta.SetTileMethod('B', LuoPainike1);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
             // TODO: kentta.SetTileMethod('1', LuoPelaaja1);
@@ -76,7 +80,8 @@ namespace AlienEscape
         {
             PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys-3, korkeus-3);
             palikka.Position = paikka;
-            //TODO: palikka.Image = 
+            // palikka.Image = LoadImage("");
+            palikka.Color = Color.Lime;
             Add(palikka);
         }
 
@@ -88,9 +93,9 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoPiikki(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys - 3, korkeus - 3);
+            PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys*1.5, korkeus);
+            piikki.Image = LoadImage("piikki.png");
             piikki.Position = paikka;
-            //TODO: piikki.Image = 
             Add(piikki);
         }
     }
