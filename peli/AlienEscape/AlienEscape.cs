@@ -75,8 +75,8 @@ namespace AlienEscape
             // TODO: kentta.SetTileMethod('B', LuoPainike1);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
-            // TODO: kentta.SetTileMethod('1', LuoPelaaja1);
-            // TODO: kentta.SetTileMethod('2', LuoPelaaja2);
+            kentta.SetTileMethod('1', LuoPelaaja, "pelaaja1", Color.Blue);
+            kentta.SetTileMethod('2', LuoPelaaja, "pelaaja2", Color.Red);
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
             // TODO: kentta.SetTileMethod('E', LuoExit);
 
@@ -114,6 +114,24 @@ namespace AlienEscape
             piikki.Image = piikinKuva;
             piikki.Position = paikka;
             Add(piikki);
+        }
+
+        /// <summary>
+        /// Luodaan pelaaja
+        /// </summary>
+        /// <param name="paikka">Piste, johon pelaaja luodaan</param>
+        /// <param name="leveys">Pelaajan leveys</param>
+        /// <param name="korkeus">Pelaajan korkeus</param>
+        /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
+        /// <param name="vari">Pelaajan väri</param>
+        private void LuoPelaaja(Vector paikka, double leveys, double korkeus, string tunniste, Color vari)
+        {
+            PlatformCharacter pelaaja = new PlatformCharacter(leveys / 2, korkeus, Shape.Rectangle);
+            pelaaja.Position = paikka;
+            // TODO: Pelaajien kuvat
+            pelaaja.Color = vari;
+            pelaaja.Tag = tunniste;
+            Add(pelaaja);
         }
     }
 }
