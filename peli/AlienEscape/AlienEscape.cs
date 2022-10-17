@@ -128,7 +128,7 @@ namespace AlienEscape
         /// <param name="korkeus">Palikan korkeus</param>
         private void LuoPalikka(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys-3, korkeus-3);
+            PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys, korkeus);
             palikka.Position = paikka;
             palikka.Image = seinanKuva;
             // if (RandomGen.NextBool()) Image.Flip(kuva);
