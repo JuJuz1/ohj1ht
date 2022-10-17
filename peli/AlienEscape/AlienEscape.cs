@@ -54,10 +54,10 @@ namespace AlienEscape
         public override void Begin()
         {
             LuoKentta();
-            LuoPelaaja(pelaaja1Aloitus, tileWidth, tileHeight, "pelaaja1", Color.Blue);
-            LuoPelaaja(pelaaja2Aloitus, tileWidth, tileHeight, "pelaaja2", Color.Red);
+            pelaaja1 = LuoPelaaja(pelaaja1Aloitus, tileWidth, tileHeight, "pelaaja1", Color.Blue);
+            pelaaja2 = LuoPelaaja(pelaaja2Aloitus, tileWidth, tileHeight, "pelaaja2", Color.Red);
 
-            Gravity = new Vector(0, -500);
+            Gravity = new Vector(0, -1000);
 
             Level.CreateBorders();
             Camera.ZoomToLevel();
@@ -65,8 +65,13 @@ namespace AlienEscape
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
-            // TODO: pelaajien liikkuminen
-            // Keyboard.Listen(Key.A, ButtonState.Down, LiikutaPelaajaa, "pelaaja1", -10.0, "Pelaaja 1: Kävele vasemmalle");
+            Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
+            Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
+            Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
+
+            Keyboard.Listen(Key.Left, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele vasemmalle", -180.0);
+            Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
+            Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
 
             // TODO: Poista 2 seuraavaa riviä? Tai sitten siirretään muualle?
             Image piikki1 = LoadImage("piikki.png");
@@ -154,21 +159,27 @@ namespace AlienEscape
         /// <param name="korkeus">Pelaajan korkeus</param>
         /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
         /// <param name="vari">Pelaajan väri</param>
-        private void LuoPelaaja(Vector paikka, double leveys, double korkeus, string tunniste, Color vari)
+        private PlatformCharacter LuoPelaaja(Vector paikka, double leveys, double korkeus, string tunniste, Color vari)
         {
-            PlatformCharacter pelaaja = new PlatformCharacter(leveys / 2, korkeus, Shape.Rectangle);
+            PlatformCharacter pelaaja = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
             pelaaja.Position = paikka;
             // TODO: Pelaajien kuvat
             pelaaja.Color = vari;
             pelaaja.Tag = tunniste;
             Add(pelaaja);
+            return pelaaja;
         }
 
 
-        // TODO: LiikutaPelaajaa
-        private void LiikutaPelaajaa(string tunniste, double kavelyNopeus)
+        /// <summary>
+        /// Pelaaja hyppää
+        /// </summary>
+        /// <param name="pelaaja">Pelaaja, joka hyppää</param>
+        /// <param name="hyppaysnopeus">Nopeus, jolla pelaaja hyppää</param>
+        private void PelaajaHyppaa(PlatformCharacter pelaaja, double hyppaysnopeus)
         {
-
+            pelaaja.Jump(hyppaysnopeus); // Täytyi tehdä oma aliohjelma, koska ohjainten luonti valitti siitä, että PlatformCharacter.Jump() palauttaa arvon,
+                                         // jolloin sitä ei voinut suoraan kutsua suoraan W-näppäintä painettaessa
         }
     }
 }
