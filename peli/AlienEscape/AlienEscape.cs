@@ -69,17 +69,19 @@ namespace AlienEscape
             Level.CreateBorders();
             Camera.ZoomToLevel();
 
-            PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+            Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
 
             // TODO: Ohjaimien ryhmittely?
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
+            Keyboard.Listen(Key.S, ButtonState.Pressed, KaytaObjektia, "Pelaaja 1: Paina nappia / poimi esine", pelaaja1);
 
             Keyboard.Listen(Key.Left, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
+            Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine", pelaaja2);
 
             // TODO: Tarvitaanko 2 seuraavaa riviä mihinkään, voiko ne poistaa?
             Image piikki1 = LoadImage("piikki.png");
@@ -174,7 +176,7 @@ namespace AlienEscape
             // TODO: painike.Image = painikkeenKuva;
             painike.Position = paikka;
             painike.Shape = Shape.Rectangle;
-            painike.Color = Color.Gray;
+            painike.Color = Color.Red;
             Add(painike);
             return painike;
         }
@@ -228,10 +230,18 @@ namespace AlienEscape
         }
 
 
-        // TODO: painaNappia
-        private void PainaNappia(PhysicsObject pelaaja)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pelaaja"></param>
+        private void KaytaObjektia(PhysicsObject pelaaja)
         {
-
+            if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.X - ovenPainike.X) < tileHeight * 0.3) // Avataan ovi
+            {
+                ovenPainike.Color = Color.Green;
+                // TODO: lisää oven avautumiselle ääni
+                ovi.Destroy();
+            }
         }
     }
 }
