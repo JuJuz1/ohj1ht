@@ -4,11 +4,44 @@ using Jypeli.Controls;
 using Jypeli.Widgets;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace AlienEscape
 {
     public class AlienEscape : PhysicsGame
     {
+        // TODO: Kentän lataaminen tekstitiedostosta
+        private static readonly String[] kentta1 = {
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXX   EX",
+            "XXXXXXX   b     XXXX",
+            "X   V    XXXXXXXXXXX",
+            "X T     H      XXXXX",
+            "XXXXXXXXXXXXXX     X",
+            "XXXXX        XXXX  X",
+            "X    BXXX  X X    XX",
+            "X   XXX   XX     XXX",
+            "X12 D   XXXXXXX XXXX",
+            "XXXXXXXXXXXXXXXAXXXX",
+            };
+
+        /// <summary>
+        /// Määritellään pelikentän yhden ruudun leveys ja korkeus
+        /// </summary>
+        private static readonly int tileWidth = 1600 / kentta1[0].Length;
+        private static readonly int tileHeight = 960 / kentta1.Length;
+
+        /// <summary>
+        /// Ladataan pelissä tarvittavat kuvat
+        /// </summary>
+        private static readonly Image luolanKuva = LoadImage("luola.png");
+        private static readonly Image seinanKuva = LoadImage("seina1");
+        private static readonly Image piikinKuva = LoadImage("piikki.png");
+
+        /// <summary>
+        /// Peli aloitetaan
+        /// </summary>
         public override void Begin()
         {
             LuoKentta();
@@ -26,36 +59,15 @@ namespace AlienEscape
 
         }
 
+
         /// <summary>
-        /// Luodaan kenttä
+        /// Luodaan kenttä merkkijonotaulukosta
         /// </summary>
         private void LuoKentta()
         {
-            String[] kenttamj = {
-
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXX   EX",
-            "XXXXXXX   b     XXXX",
-            "X   V    XXXXXXXXXXX",
-            "X T     H      XXXXX",
-            "XXXXXXXXXXXXXX     X",
-            "XXXXX        XXXX  X",
-            "X    BXXX  X X    XX",
-            "X   XXX   XX     XXX",
-            "X12 D   XXXXXXX XXXX",
-            "===============A====",
-
-            };
-
-            int tileWidth = 1600 / kenttamj[0].Length;
-            int tileHeight = 960 / kenttamj.Length;
-
-            Level.Background.Image = LoadImage("luola.png");
-            TileMap kentta = TileMap.FromStringArray(kenttamj);
-
+            TileMap kentta = TileMap.FromStringArray(kentta1);
+            Level.Background.Image = luolanKuva;
             kentta.SetTileMethod('X', LuoPalikka);
-            kentta.SetTileMethod('=', LuoPalikka);
             kentta.SetTileMethod('A', LuoPiikki);
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
@@ -70,31 +82,36 @@ namespace AlienEscape
 
             kentta.Execute(tileWidth, tileHeight); // Luodaan kenttä
         }
-    /// <summary>
-    /// Luodaan kentän rakenneosat
-    /// </summary>
-    /// <param name="paikka">Mihin palikka syntyy</param>
-    /// <param name="leveys">Palikan leveys</param>
-    /// <param name="korkeus">Palikan korkeus</param>
-    private void LuoPalikka(Vector paikka, double leveys, double korkeus)
+
+
+        /// <summary>
+        /// Luodaan kenttään palikka
+        /// </summary>
+        /// <param name="paikka">Piste, johon palikka syntyy</param>
+        /// <param name="leveys">Palikan leveys</param>
+        /// <param name="korkeus">Palikan korkeus</param>
+        private void LuoPalikka(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys-3, korkeus-3);
             palikka.Position = paikka;
-            // palikka.Image = LoadImage("");
-            palikka.Color = Color.Lime;
+            palikka.Image = seinanKuva;
+            // if (RandomGen.NextBool()) Image.Flip(kuva);
+            // if (RandomGen.NextBool()) Image.Mirror(kuva);
+            // palikka.Image = kuva;
             Add(palikka);
         }
+
 
         /// <summary>
         /// Luodaan piikki
         /// </summary>
-        /// <param name="paikka"></param>
-        /// <param name="leveys"></param>
-        /// <param name="korkeus"></param>
+        /// <param name="paikka">Piste, johon piikki luodaan</param>
+        /// <param name="leveys">Piikin leveys</param>
+        /// <param name="korkeus">Piikin korkeus</param>
         private void LuoPiikki(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys*1.5, korkeus);
-            piikki.Image = LoadImage("piikki.png");
+            piikki.Image = piikinKuva;
             piikki.Position = paikka;
             Add(piikki);
         }
