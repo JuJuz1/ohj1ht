@@ -4,6 +4,7 @@ using Jypeli.Controls;
 using Jypeli.Widgets;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace AlienEscape
@@ -91,8 +92,8 @@ namespace AlienEscape
             kentta.SetTileMethod('A', LuoPiikki);
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
-            // TODO: kentta.SetTileMethod('D', LuoOvi);
-            // TODO: kentta.SetTileMethod('B', LuoPainike1);
+            kentta.SetTileMethod('D', LuoOvi);
+            kentta.SetTileMethod('B', LuoPainike1);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
             kentta.SetTileMethod('1', AsetaPelaajanPaikka, "pelaaja1");
@@ -134,6 +135,40 @@ namespace AlienEscape
             piikki.Image = piikinKuva;
             piikki.Position = paikka;
             Add(piikki);
+        }
+
+
+        /// <summary>
+        /// Luodaan peliin ovi
+        /// </summary>
+        /// <param name="paikka">Oven paikka</param>
+        /// <param name="leveys">Oven leveys</param>
+        /// <param name="korkeus">Oven korkeus</param>
+        private void LuoOvi(Vector paikka, double leveys, double korkeus)
+        {
+            PhysicsObject ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
+            // TODO: ovi.Image = ovenKuva;
+            ovi.Position = paikka;
+            ovi.Shape = Shape.Rectangle;
+            ovi.Color = Color.Brown;
+            Add(ovi);
+        }
+
+
+        /// <summary>
+        /// Luodaan peliin painike
+        /// </summary>
+        /// <param name="paikka">Painikkeen paikka</param>
+        /// <param name="leveys">Painikkeen leveys</param>
+        /// <param name="korkeus">Painikkeen korkeus</param>
+        private void LuoPainike1(Vector paikka, double leveys, double korkeus)
+        {
+            GameObject painike = new GameObject(leveys * 0.2, korkeus * 0.2);
+            // TODO: painike.Image = painikkeenKuva;
+            painike.Position = paikka;
+            painike.Shape = Shape.Rectangle;
+            painike.Color = Color.Gray;
+            Add(painike);
         }
 
 
