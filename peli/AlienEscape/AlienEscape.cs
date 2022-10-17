@@ -31,6 +31,8 @@ namespace AlienEscape
         private static PlatformCharacter pelaaja2;
         private static PhysicsObject ovi;
         private static GameObject ovenPainike;
+        private static IntMeter pelaaja1HP;
+        private static IntMeter pelaaja2HP;
 
         /// <summary>
         /// Määritellään pelikentän yhden ruudun leveys ja korkeus
@@ -68,6 +70,9 @@ namespace AlienEscape
 
             Level.CreateBorders();
             Camera.ZoomToLevel();
+
+            LuoHPLaskuri1();
+            LuoHPLaskuri2();
 
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
@@ -215,6 +220,42 @@ namespace AlienEscape
             pelaaja.Tag = tunniste;
             Add(pelaaja);
             return pelaaja;
+        }
+
+
+        /// <summary>
+        /// Luodaan pelaajan 1 hitpoint laskuri ja sen näyttö
+        /// </summary>
+        private void LuoHPLaskuri1()
+        {
+            pelaaja1HP = new IntMeter(3);
+            pelaaja1HP.MinValue = 0;
+            Label nayttoHP1 = new Label();
+            nayttoHP1.X = Screen.Left + 150;
+            nayttoHP1.Y = Screen.Top - 50;
+            nayttoHP1.TextColor = Color.White;
+            nayttoHP1.Color = Color.Blue;
+            nayttoHP1.IntFormatString = " HP = {0:D1} ";
+            nayttoHP1.BindTo(pelaaja1HP);
+            Add(nayttoHP1);
+        }
+
+
+        /// <summary>
+        /// Luodaan pelaajan 2 hitpoint laskuri ja sen näyttö
+        /// </summary>
+        private void LuoHPLaskuri2()
+        {
+            pelaaja2HP = new IntMeter(3);
+            pelaaja2HP.MinValue = 0;
+            Label nayttoHP2 = new Label();
+            nayttoHP2.X = Screen.Left + 300;
+            nayttoHP2.Y = Screen.Top - 50;
+            nayttoHP2.TextColor = Color.White;
+            nayttoHP2.Color = Color.Red;
+            nayttoHP2.IntFormatString = " HP = {0:D1} ";
+            nayttoHP2.BindTo(pelaaja2HP);
+            Add(nayttoHP2);
         }
 
 
