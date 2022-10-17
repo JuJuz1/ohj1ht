@@ -26,11 +26,20 @@ namespace AlienEscape
             "XXXXXXXXXXXXXXXAXXXX",
             };
 
+        private static PlatformCharacter pelaaja1;
+        private static PlatformCharacter pelaaja2;
+
         /// <summary>
         /// Määritellään pelikentän yhden ruudun leveys ja korkeus
         /// </summary>
         private static readonly int tileWidth = 1600 / kentta1[0].Length;
         private static readonly int tileHeight = 960 / kentta1.Length;
+
+        /// <summary>
+        /// Luodaan muuttujat pelaajien aloituspisteille
+        /// </summary>
+        private static Vector pelaaja1Aloitus;
+        private static Vector pelaaja2Aloitus;
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
@@ -45,6 +54,8 @@ namespace AlienEscape
         public override void Begin()
         {
             LuoKentta();
+            LuoPelaaja(pelaaja1Aloitus, tileWidth, tileHeight, "pelaaja1", Color.Blue);
+            LuoPelaaja(pelaaja2Aloitus, tileWidth, tileHeight, "pelaaja2", Color.Red);
 
             Gravity = new Vector(0, -500);
 
@@ -54,6 +65,10 @@ namespace AlienEscape
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
+            // TODO: pelaajien liikkuminen
+            // Keyboard.Listen(Key.A, ButtonState.Down, LiikutaPelaajaa, "pelaaja1", -10.0, "Pelaaja 1: Kävele vasemmalle");
+
+            // TODO: Poista 2 seuraavaa riviä? Tai sitten siirretään muualle?
             Image piikki1 = LoadImage("piikki.png");
             Shape piikki2 = Shape.FromImage(piikki1);
 
@@ -75,8 +90,8 @@ namespace AlienEscape
             // TODO: kentta.SetTileMethod('B', LuoPainike1);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
-            kentta.SetTileMethod('1', LuoPelaaja, "pelaaja1", Color.Blue);
-            kentta.SetTileMethod('2', LuoPelaaja, "pelaaja2", Color.Red);
+            kentta.SetTileMethod('1', AsetaPelaajanPaikka, "pelaaja1");
+            kentta.SetTileMethod('2', AsetaPelaajanPaikka, "pelaaja2");
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
             // TODO: kentta.SetTileMethod('E', LuoExit);
 
@@ -116,6 +131,21 @@ namespace AlienEscape
             Add(piikki);
         }
 
+
+        /// <summary>
+        /// Asetetaan muuttujaan pelaaja1Aloitus tai pelaaja2Aloitus kyseisen pelaajan aloituspiste
+        /// </summary>
+        /// <param name="paikka">Piste, joka tallennetaan muuttujaan</param>
+        /// <param name="pelaaja">Pelaaja, jonka muuttujaan paikka tallennetaan ("pelaaja1" tai "pelaaja2")</param>
+        /// <param name="korkeus">ei käytetä</param>
+        /// <param name="leveys">ei käytetä</param>
+        private void AsetaPelaajanPaikka(Vector paikka, double leveys, double korkeus, string pelaaja)
+        {
+            if (pelaaja == "pelaaja1") pelaaja1Aloitus = paikka;
+            if (pelaaja == "pelaaja2") pelaaja2Aloitus = paikka;
+        }
+
+
         /// <summary>
         /// Luodaan pelaaja
         /// </summary>
@@ -132,6 +162,13 @@ namespace AlienEscape
             pelaaja.Color = vari;
             pelaaja.Tag = tunniste;
             Add(pelaaja);
+        }
+
+
+        // TODO: LiikutaPelaajaa
+        private void LiikutaPelaajaa(string tunniste, double kavelyNopeus)
+        {
+
         }
     }
 }
