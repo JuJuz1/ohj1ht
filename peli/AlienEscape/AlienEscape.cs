@@ -73,6 +73,8 @@ namespace AlienEscape
 
             LuoHPLaskuri1();
             LuoHPLaskuri2();
+            AddCollisionHandler(pelaaja1, "piikki", Pelaaja1Vahingoittui);
+            AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
 
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
@@ -147,6 +149,7 @@ namespace AlienEscape
             PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys*1.5, korkeus);
             piikki.Image = piikinKuva;
             piikki.Position = paikka;
+            piikki.Tag = "piikki";
             Add(piikki);
         }
 
@@ -283,6 +286,30 @@ namespace AlienEscape
                 // TODO: lisää oven avautumiselle ääni
                 ovi.Destroy();
             }
+        }
+
+
+        /// <summary>
+        /// Pelaaja törmää johonkin ja menettää yhden HP:n
+        /// </summary>
+        /// <param name="pelaaja">Pelaaja, joka törmäsi</param>
+        /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
+        private void Pelaaja1Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
+        {
+            pelaaja1HP.Value -= 1;
+            // TODO: jos HP <= 0, peli päättyy
+        }
+
+
+        /// <summary>
+        /// Pelaaja törmää johonkin ja menettää yhden HP:n
+        /// </summary>
+        /// <param name="pelaaja">Pelaaja, joka törmäsi</param>
+        /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
+        private void Pelaaja2Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
+        {
+            pelaaja2HP.Value -= 1;
+            // TODO: jos HP <= 0, peli päättyy
         }
     }
 }
