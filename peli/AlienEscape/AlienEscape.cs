@@ -29,6 +29,8 @@ namespace AlienEscape
 
         private static PlatformCharacter pelaaja1;
         private static PlatformCharacter pelaaja2;
+        private static PhysicsObject ovi;
+        private static GameObject ovenPainike;
 
         /// <summary>
         /// Määritellään pelikentän yhden ruudun leveys ja korkeus
@@ -37,10 +39,12 @@ namespace AlienEscape
         private static readonly int tileHeight = 960 / kentta1.Length;
 
         /// <summary>
-        /// Luodaan muuttujat pelaajien aloituspisteille
+        /// Luodaan muuttujat objektien aloituspisteille
         /// </summary>
         private static Vector pelaaja1Aloitus;
         private static Vector pelaaja2Aloitus;
+        private static Vector ovenPaikka;
+        private static Vector ovenPainikkeenPaikka;
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
@@ -57,6 +61,8 @@ namespace AlienEscape
             LuoKentta();
             pelaaja1 = LuoPelaaja(pelaaja1Aloitus, tileWidth, tileHeight, "pelaaja1", Color.Blue);
             pelaaja2 = LuoPelaaja(pelaaja2Aloitus, tileWidth, tileHeight, "pelaaja2", Color.Red);
+            ovi = LuoOvi(ovenPaikka, tileWidth, tileHeight);
+            ovenPainike = LuoOvenPainike(ovenPainikkeenPaikka, tileWidth, tileHeight);
 
             Gravity = new Vector(0, -1000);
 
@@ -66,6 +72,7 @@ namespace AlienEscape
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
+            // TODO: Ohjaimien ryhmittely?
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
@@ -74,10 +81,9 @@ namespace AlienEscape
             Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
 
-            // TODO: Poista 2 seuraavaa riviä? Tai sitten siirretään muualle?
+            // TODO: Tarvitaanko 2 seuraavaa riviä mihinkään, voiko ne poistaa?
             Image piikki1 = LoadImage("piikki.png");
             Shape piikki2 = Shape.FromImage(piikki1);
-
         }
 
 
@@ -92,12 +98,12 @@ namespace AlienEscape
             kentta.SetTileMethod('A', LuoPiikki);
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
-            kentta.SetTileMethod('D', LuoOvi);
-            kentta.SetTileMethod('B', LuoPainike1);
+            kentta.SetTileMethod('D', AsetaPaikka, "ovi");
+            kentta.SetTileMethod('B', AsetaPaikka, "ovenPainike");
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
-            kentta.SetTileMethod('1', AsetaPelaajanPaikka, "pelaaja1");
-            kentta.SetTileMethod('2', AsetaPelaajanPaikka, "pelaaja2");
+            kentta.SetTileMethod('1', AsetaPaikka, "pelaaja1");
+            kentta.SetTileMethod('2', AsetaPaikka, "pelaaja2");
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
             // TODO: kentta.SetTileMethod('E', LuoExit);
 
@@ -144,7 +150,7 @@ namespace AlienEscape
         /// <param name="paikka">Oven paikka</param>
         /// <param name="leveys">Oven leveys</param>
         /// <param name="korkeus">Oven korkeus</param>
-        private void LuoOvi(Vector paikka, double leveys, double korkeus)
+        private PhysicsObject LuoOvi(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
             // TODO: ovi.Image = ovenKuva;
@@ -152,6 +158,7 @@ namespace AlienEscape
             ovi.Shape = Shape.Rectangle;
             ovi.Color = Color.Brown;
             Add(ovi);
+            return ovi;
         }
 
 
@@ -161,7 +168,7 @@ namespace AlienEscape
         /// <param name="paikka">Painikkeen paikka</param>
         /// <param name="leveys">Painikkeen leveys</param>
         /// <param name="korkeus">Painikkeen korkeus</param>
-        private void LuoPainike1(Vector paikka, double leveys, double korkeus)
+        private GameObject LuoOvenPainike(Vector paikka, double leveys, double korkeus)
         {
             GameObject painike = new GameObject(leveys * 0.2, korkeus * 0.2);
             // TODO: painike.Image = painikkeenKuva;
@@ -169,20 +176,23 @@ namespace AlienEscape
             painike.Shape = Shape.Rectangle;
             painike.Color = Color.Gray;
             Add(painike);
+            return painike;
         }
 
 
         /// <summary>
-        /// Asetetaan muuttujaan pelaaja1Aloitus tai pelaaja2Aloitus kyseisen pelaajan aloituspiste
+        /// Asetetaan muuttujaan objektin paikka
         /// </summary>
         /// <param name="paikka">Piste, joka tallennetaan muuttujaan</param>
-        /// <param name="pelaaja">Pelaaja, jonka muuttujaan paikka tallennetaan ("pelaaja1" tai "pelaaja2")</param>
+        /// <param name="pelaaja">Objekti, jonka muuttujaan paikka tallennetaan ("pelaaja1", "pelaaja2", "ovi" tai "ovenPainike")</param>
         /// <param name="korkeus">ei käytetä</param>
         /// <param name="leveys">ei käytetä</param>
-        private void AsetaPelaajanPaikka(Vector paikka, double leveys, double korkeus, string pelaaja)
+        private void AsetaPaikka(Vector paikka, double leveys, double korkeus, string pelaaja)
         {
             if (pelaaja == "pelaaja1") pelaaja1Aloitus = paikka;
             if (pelaaja == "pelaaja2") pelaaja2Aloitus = paikka;
+            if (pelaaja == "ovi") ovenPaikka = paikka;
+            if (pelaaja == "ovenPainike") ovenPainikkeenPaikka = paikka;
         }
 
 
@@ -215,6 +225,13 @@ namespace AlienEscape
         {
             pelaaja.Jump(hyppaysnopeus); // Täytyi tehdä oma aliohjelma, koska ohjainten luonti valitti siitä, että PlatformCharacter.Jump() palauttaa arvon,
                                          // jolloin sitä ei voinut suoraan kutsua suoraan W-näppäintä painettaessa
+        }
+
+
+        // TODO: painaNappia
+        private void PainaNappia(PhysicsObject pelaaja)
+        {
+
         }
     }
 }
