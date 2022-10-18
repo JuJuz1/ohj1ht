@@ -41,14 +41,6 @@ namespace AlienEscape
         private static readonly int tileHeight = 960 / kentta1.Length;
 
         /// <summary>
-        /// Luodaan muuttujat objektien aloituspisteille
-        /// </summary>
-        private static Vector pelaaja1Aloitus;
-        private static Vector pelaaja2Aloitus;
-        private static Vector ovenPaikka;
-        private static Vector ovenPainikkeenPaikka;
-
-        /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
         /// </summary>
         private static readonly Image luolanKuva = LoadImage("luola.png");
@@ -61,10 +53,6 @@ namespace AlienEscape
         public override void Begin()
         {
             LuoKentta();
-            pelaaja1 = LuoPelaaja(pelaaja1Aloitus, tileWidth, tileHeight, "pelaaja1", Color.Blue);
-            pelaaja2 = LuoPelaaja(pelaaja2Aloitus, tileWidth, tileHeight, "pelaaja2", Color.Red);
-            ovi = LuoOvi(ovenPaikka, tileWidth, tileHeight);
-            ovenPainike = LuoOvenPainike(ovenPainikkeenPaikka, tileWidth, tileHeight);
 
             Gravity = new Vector(0, -1000);
 
@@ -107,12 +95,12 @@ namespace AlienEscape
             kentta.SetTileMethod('A', LuoPiikki);
             // TODO: kentta.SetTileMethod('V', LuoLaser);
             // TODO: kentta.SetTileMethod('T', LuoAarre);
-            kentta.SetTileMethod('D', AsetaPaikka, "ovi");
-            kentta.SetTileMethod('B', AsetaPaikka, "ovenPainike");
+            kentta.SetTileMethod('D', LuoOvi);
+            kentta.SetTileMethod('B', LuoOvenPainike);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
             // TODO: kentta.SetTileMethod('H', LuoHissi);
-            kentta.SetTileMethod('1', AsetaPaikka, "pelaaja1");
-            kentta.SetTileMethod('2', AsetaPaikka, "pelaaja2");
+            kentta.SetTileMethod('1', LuoPelaaja1);
+            kentta.SetTileMethod('2', LuoPelaaja2);
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
             // TODO: kentta.SetTileMethod('E', LuoExit);
 
@@ -160,15 +148,14 @@ namespace AlienEscape
         /// <param name="paikka">Oven paikka</param>
         /// <param name="leveys">Oven leveys</param>
         /// <param name="korkeus">Oven korkeus</param>
-        private PhysicsObject LuoOvi(Vector paikka, double leveys, double korkeus)
+        private void LuoOvi(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
+            ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
             // TODO: ovi.Image = ovenKuva;
             ovi.Position = paikka;
             ovi.Shape = Shape.Rectangle;
             ovi.Color = Color.Brown;
             Add(ovi);
-            return ovi;
         }
 
 
@@ -178,51 +165,50 @@ namespace AlienEscape
         /// <param name="paikka">Painikkeen paikka</param>
         /// <param name="leveys">Painikkeen leveys</param>
         /// <param name="korkeus">Painikkeen korkeus</param>
-        private GameObject LuoOvenPainike(Vector paikka, double leveys, double korkeus)
+        private void LuoOvenPainike(Vector paikka, double leveys, double korkeus)
         {
-            GameObject painike = new GameObject(leveys * 0.2, korkeus * 0.2);
-            // TODO: painike.Image = painikkeenKuva;
-            painike.Position = paikka;
-            painike.Shape = Shape.Rectangle;
-            painike.Color = Color.Red;
-            Add(painike);
-            return painike;
+            ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
+            // TODO: ovenPainike.Image = painikkeenKuva;
+            ovenPainike.Position = paikka;
+            ovenPainike.Shape = Shape.Rectangle;
+            ovenPainike.Color = Color.Red;
+            Add(ovenPainike);
         }
 
 
         /// <summary>
-        /// Asetetaan muuttujaan objektin paikka
-        /// </summary>
-        /// <param name="paikka">Piste, joka tallennetaan muuttujaan</param>
-        /// <param name="pelaaja">Objekti, jonka muuttujaan paikka tallennetaan ("pelaaja1", "pelaaja2", "ovi" tai "ovenPainike")</param>
-        /// <param name="korkeus">ei käytetä</param>
-        /// <param name="leveys">ei käytetä</param>
-        private void AsetaPaikka(Vector paikka, double leveys, double korkeus, string pelaaja)
-        {
-            if (pelaaja == "pelaaja1") pelaaja1Aloitus = paikka;
-            if (pelaaja == "pelaaja2") pelaaja2Aloitus = paikka;
-            if (pelaaja == "ovi") ovenPaikka = paikka;
-            if (pelaaja == "ovenPainike") ovenPainikkeenPaikka = paikka;
-        }
-
-
-        /// <summary>
-        /// Luodaan pelaaja
+        /// Luodaan pelaaja 1
         /// </summary>
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
         /// <param name="leveys">Pelaajan leveys</param>
         /// <param name="korkeus">Pelaajan korkeus</param>
         /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
         /// <param name="vari">Pelaajan väri</param>
-        private PlatformCharacter LuoPelaaja(Vector paikka, double leveys, double korkeus, string tunniste, Color vari)
+        private void LuoPelaaja1(Vector paikka, double leveys, double korkeus)
         {
-            PlatformCharacter pelaaja = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
-            pelaaja.Position = paikka;
+            pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja1.Position = paikka;
             // TODO: Pelaajien kuvat
-            pelaaja.Color = vari;
-            pelaaja.Tag = tunniste;
-            Add(pelaaja);
-            return pelaaja;
+            pelaaja1.Color = Color.Red;
+            Add(pelaaja1);
+        }
+
+
+        /// <summary>
+        /// Luodaan pelaaja 2
+        /// </summary>
+        /// <param name="paikka">Piste, johon pelaaja luodaan</param>
+        /// <param name="leveys">Pelaajan leveys</param>
+        /// <param name="korkeus">Pelaajan korkeus</param>
+        /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
+        /// <param name="vari">Pelaajan väri</param>
+        private void LuoPelaaja2(Vector paikka, double leveys, double korkeus)
+        {
+            pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2.Position = paikka;
+            // TODO: Pelaajien kuvat
+            pelaaja2.Color = Color.Blue;
+            Add(pelaaja2);
         }
 
 
