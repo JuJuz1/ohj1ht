@@ -196,7 +196,7 @@ namespace AlienEscape
             // TODO: hissinPainike.Image = jotain;
             hissinPainike.Position = paikka;
             hissinPainike.Shape = Shape.Rectangle;
-            hissinPainike.Color = Color.Purple;
+            hissinPainike.Color = Color.Red;
             Add(hissinPainike);
         }
 
@@ -311,16 +311,17 @@ namespace AlienEscape
         /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
-            if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.X - ovenPainike.X) < tileHeight * 0.3) // Avataan ovi
+            if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - ovenPainike.Y) < tileHeight * 0.3) // Avataan ovi
             {
                 ovenPainike.Color = Color.Green;
                 // TODO: lisää oven avautumiselle ääni
                 ovi.Destroy();
             }
 
-            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.X - hissinPainike.X) < tileHeight * 0.3) // Hissiä nostetaan
+            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3) // Hissiä nostetaan
             {
                 hissi.MoveTo(new Vector(hissi.X * 2, hissi.Y * 2), 100); // ei toimi oikein
+                hissinPainike.Color = Color.Green;
             }
         }
 
