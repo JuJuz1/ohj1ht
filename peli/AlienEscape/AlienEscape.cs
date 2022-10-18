@@ -26,11 +26,18 @@ namespace AlienEscape
             "X12 D   XXXXXXX XXXX",
             "XXXXXXXXXXXXXXXAXXXX",
             };
-
+        /// <summary>
+        /// Esitellään oliot, jotka tarvitaan attribuutteina
+        /// </summary>
         private static PlatformCharacter pelaaja1;
         private static PlatformCharacter pelaaja2;
         private static PhysicsObject ovi;
         private static GameObject ovenPainike;
+        private static PhysicsObject hissi;
+
+        /// <summary>
+        /// Esitellään laskurit
+        /// </summary>
         private static IntMeter pelaaja1HP;
         private static IntMeter pelaaja2HP;
 
@@ -98,7 +105,7 @@ namespace AlienEscape
             kentta.SetTileMethod('D', LuoOvi);
             kentta.SetTileMethod('B', LuoOvenPainike);
             // TODO: kentta.SetTileMethod('b', LuoPainike2);
-            // TODO: kentta.SetTileMethod('H', LuoHissi);
+            kentta.SetTileMethod('H', LuoHissi);
             kentta.SetTileMethod('1', LuoPelaaja1);
             kentta.SetTileMethod('2', LuoPelaaja2);
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
@@ -127,11 +134,11 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Luodaan piikki
+        /// Luodaan peliin piikki
         /// </summary>
         /// <param name="paikka">Piste, johon piikki luodaan</param>
-        /// <param name="leveys">Piikin leveys</param>
-        /// <param name="korkeus">Piikin korkeus</param>
+        /// <param name="leveys">1 ruudun leveys</param>
+        /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoPiikki(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys*1.5, korkeus);
@@ -143,11 +150,11 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Luodaan peliin ovi
+        /// Luodaan peliin painikkeella avattava ovi
         /// </summary>
-        /// <param name="paikka">Oven paikka</param>
-        /// <param name="leveys">Oven leveys</param>
-        /// <param name="korkeus">Oven korkeus</param>
+        /// <param name="paikka">Piste, johon ovi luodaan</param>
+        /// <param name="leveys">1 ruudun leveys</param>
+        /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoOvi(Vector paikka, double leveys, double korkeus)
         {
             ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
@@ -160,11 +167,11 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Luodaan peliin painike
+        /// Luodaan peliin painike, jolla saa avattua oven
         /// </summary>
-        /// <param name="paikka">Painikkeen paikka</param>
-        /// <param name="leveys">Painikkeen leveys</param>
-        /// <param name="korkeus">Painikkeen korkeus</param>
+        /// <param name="paikka">Piste, johon oven painike luodaan</param>
+        /// <param name="leveys">1 ruudun leveys</param>
+        /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoOvenPainike(Vector paikka, double leveys, double korkeus)
         {
             ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
@@ -177,20 +184,43 @@ namespace AlienEscape
 
 
         /// <summary>
+        /// Luodaan peliin 2 ruutua leveä hissi, joka voi liikkua ylös ja alas
+        /// </summary>
+        /// <param name="paikka">Piste, johon halutaan hissin vasemman laidan tulevan</param>
+        /// <param name="leveys">1 ruudun leveys</param>
+        /// <param name="korkeus">1 ruudun korkeus</param>
+        private void LuoHissi(Vector paikka, double leveys, double korkeus)
+        {
+            GameObject hissikuilu = new GameObject(leveys * 0.5, korkeus * 2);
+            hissikuilu.Y = paikka.Y + korkeus * 0.5;
+            hissikuilu.X = paikka.X - leveys * 0.5;
+            hissikuilu.Shape = Shape.Rectangle;
+            hissikuilu.Color = Color.AshGray;
+            Add(hissikuilu);
+
+            hissi = PhysicsObject.CreateStaticObject(leveys * 1.8, korkeus * 0.2);
+            hissi.X = paikka.X - leveys * 0.5;
+            hissi.Y = paikka.Y - korkeus * 0.6;
+            hissi.Shape = Shape.Rectangle;
+            hissi.Color = Color.Maroon;
+            hissi.MakeOneWay();
+            Add(hissi, 1);
+        }
+
+
+        /// <summary>
         /// Luodaan pelaaja 1
         /// </summary>
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
-        /// <param name="leveys">Pelaajan leveys</param>
-        /// <param name="korkeus">Pelaajan korkeus</param>
-        /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
-        /// <param name="vari">Pelaajan väri</param>
+        /// <param name="leveys">1 ruudun leveys pelikentällä</param>
+        /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         private void LuoPelaaja1(Vector paikka, double leveys, double korkeus)
         {
             pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
             pelaaja1.Position = paikka;
             // TODO: Pelaajien kuvat
             pelaaja1.Color = Color.Red;
-            Add(pelaaja1);
+            Add(pelaaja1, 2);
         }
 
 
@@ -198,17 +228,15 @@ namespace AlienEscape
         /// Luodaan pelaaja 2
         /// </summary>
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
-        /// <param name="leveys">Pelaajan leveys</param>
-        /// <param name="korkeus">Pelaajan korkeus</param>
-        /// <param name="tunniste">Merkkijono, jolla eri pelaajat erotetaan toisistaan</param>
-        /// <param name="vari">Pelaajan väri</param>
+        /// <param name="leveys">1 ruudun leveys pelikentällä</param>
+        /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         private void LuoPelaaja2(Vector paikka, double leveys, double korkeus)
         {
             pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
             pelaaja2.Position = paikka;
             // TODO: Pelaajien kuvat
             pelaaja2.Color = Color.Blue;
-            Add(pelaaja2);
+            Add(pelaaja2, 2);
         }
 
 
@@ -261,9 +289,9 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// 
+        /// Pelaaja käyttää lähellä olevaa objektia, kuten painaa nappia tai poimii maasta aarteen
         /// </summary>
-        /// <param name="pelaaja"></param>
+        /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
             if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.X - ovenPainike.X) < tileHeight * 0.3) // Avataan ovi
@@ -276,7 +304,7 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Pelaaja törmää johonkin ja menettää yhden HP:n
+        /// Pelaaja 1 törmää johonkin ja menettää yhden HP:n
         /// </summary>
         /// <param name="pelaaja">Pelaaja, joka törmäsi</param>
         /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
@@ -288,7 +316,7 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Pelaaja törmää johonkin ja menettää yhden HP:n
+        /// Pelaaja 1 törmää johonkin ja menettää yhden HP:n
         /// </summary>
         /// <param name="pelaaja">Pelaaja, joka törmäsi</param>
         /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
