@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Transactions;
 
 namespace AlienEscape
 {
@@ -33,6 +34,7 @@ namespace AlienEscape
         private static PlatformCharacter pelaaja2;
         private static PhysicsObject ovi;
         private static GameObject ovenPainike;
+        private static GameObject hissinPainike;
         private static PhysicsObject hissi;
 
         /// <summary>
@@ -86,8 +88,8 @@ namespace AlienEscape
             Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine", pelaaja2);
 
             // TODO: Tarvitaanko 2 seuraavaa riviä mihinkään, voiko ne poistaa?
-            Image piikki1 = LoadImage("piikki.png");
-            Shape piikki2 = Shape.FromImage(piikki1);
+            // Image piikki1 = LoadImage("piikki.png");
+            // Shape piikki2 = Shape.FromImage(piikki1);
         }
 
 
@@ -104,7 +106,7 @@ namespace AlienEscape
             // TODO: kentta.SetTileMethod('T', LuoAarre);
             kentta.SetTileMethod('D', LuoOvi);
             kentta.SetTileMethod('B', LuoOvenPainike);
-            // TODO: kentta.SetTileMethod('b', LuoPainike2);
+            kentta.SetTileMethod('b', LuoHissinPainike);
             kentta.SetTileMethod('H', LuoHissi);
             kentta.SetTileMethod('1', LuoPelaaja1);
             kentta.SetTileMethod('2', LuoPelaaja2);
@@ -181,7 +183,22 @@ namespace AlienEscape
             ovenPainike.Color = Color.Red;
             Add(ovenPainike);
         }
-
+        
+        /// <summary>
+        /// Luodaan hissille painike
+        /// </summary>
+        /// <param name="paikka"></param>
+        /// <param name="leveys"></param>
+        /// <param name="korkeus"></param>
+        private void LuoHissinPainike(Vector paikka, double leveys, double korkeus)
+        {
+            hissinPainike = new GameObject(leveys * 0.3, korkeus * 0.2);
+            // TODO: hissinPainike.Image = jotain;
+            hissinPainike.Position = paikka;
+            hissinPainike.Shape = Shape.Rectangle;
+            hissinPainike.Color = Color.Purple;
+            Add(hissinPainike);
+        }
 
         /// <summary>
         /// Luodaan peliin 2 ruutua leveä hissi, joka voi liikkua ylös ja alas
@@ -198,7 +215,7 @@ namespace AlienEscape
             hissikuilu.Color = Color.AshGray;
             Add(hissikuilu);
 
-            hissi = PhysicsObject.CreateStaticObject(leveys * 1.8, korkeus * 0.2);
+            hissi = new PhysicsObject(leveys * 1.8, korkeus * 0.2); // Ei voi olla static jos haluaa liikuttaa
             hissi.X = paikka.X - leveys * 0.5;
             hissi.Y = paikka.Y - korkeus * 0.6;
             hissi.Shape = Shape.Rectangle;
@@ -251,7 +268,7 @@ namespace AlienEscape
             nayttoHP1.X = Screen.Left + 150;
             nayttoHP1.Y = Screen.Top - 50;
             nayttoHP1.TextColor = Color.White;
-            nayttoHP1.Color = Color.Blue;
+            nayttoHP1.Color = Color.Red;
             nayttoHP1.IntFormatString = " HP = {0:D1} ";
             nayttoHP1.BindTo(pelaaja1HP);
             Add(nayttoHP1);
@@ -269,7 +286,7 @@ namespace AlienEscape
             nayttoHP2.X = Screen.Left + 300;
             nayttoHP2.Y = Screen.Top - 50;
             nayttoHP2.TextColor = Color.White;
-            nayttoHP2.Color = Color.Red;
+            nayttoHP2.Color = Color.Blue;
             nayttoHP2.IntFormatString = " HP = {0:D1} ";
             nayttoHP2.BindTo(pelaaja2HP);
             Add(nayttoHP2);
@@ -300,6 +317,11 @@ namespace AlienEscape
                 // TODO: lisää oven avautumiselle ääni
                 ovi.Destroy();
             }
+
+            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.X - hissinPainike.X) < tileHeight * 0.3) // Hissiä nostetaan
+            {
+                hissi.MoveTo(new Vector(hissi.X * 2, hissi.Y * 2), 100); // ei toimi oikein
+            }
         }
 
 
@@ -311,19 +333,28 @@ namespace AlienEscape
         private void Pelaaja1Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
         {
             pelaaja1HP.Value -= 1;
-            // TODO: jos HP <= 0, peli päättyy
+            if (pelaaja1HP <= 0) PeliLoppuu();
         }
 
 
         /// <summary>
-        /// Pelaaja 1 törmää johonkin ja menettää yhden HP:n
+        /// Pelaaja 2 törmää johonkin ja menettää yhden HP:n
         /// </summary>
         /// <param name="pelaaja">Pelaaja, joka törmäsi</param>
         /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
         private void Pelaaja2Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
         {
             pelaaja2HP.Value -= 1;
-            // TODO: jos HP <= 0, peli päättyy
+            if (pelaaja2HP <= 0) PeliLoppuu();
+        }
+
+        /// <summary>
+        /// Peli loppuu
+        /// </summary>
+        private void PeliLoppuu()
+        {
+            ClearAll();
+            // TODO: äänet, tekstiä, aloita alusta-nappi
         }
     }
 }
