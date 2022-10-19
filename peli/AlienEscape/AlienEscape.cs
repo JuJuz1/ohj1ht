@@ -56,9 +56,11 @@ namespace AlienEscape
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
         /// </summary>
-        private static readonly Image luolanKuva = LoadImage("luola.png");
+        private static readonly Image luolanKuva = LoadImage("luola");
         private static readonly Image seinanKuva = LoadImage("seina1");
-        private static readonly Image piikinKuva = LoadImage("piikki.png");
+        private static readonly Image piikinKuva = LoadImage("piikki");
+        private static readonly Image pelaaja1Kuva = LoadImage("pelaaja1");
+        private static readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
 
         /// <summary>
         /// Peli aloitetaan
@@ -66,7 +68,6 @@ namespace AlienEscape
         public override void Begin()
         {
             LuoKentta();
-
             Gravity = new Vector(0, -1000);
 
             Level.CreateBorders();
@@ -82,6 +83,7 @@ namespace AlienEscape
 
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
+            Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
 
             // TODO: Ohjaimien ryhmittely?
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
@@ -97,6 +99,14 @@ namespace AlienEscape
             // TODO: Tarvitaanko 2 seuraavaa riviä mihinkään, voiko ne poistaa?
             // Image piikki1 = LoadImage("piikki.png");
             // Shape piikki2 = Shape.FromImage(piikki1);
+        }
+
+
+        private void VaihdaFullScreen()
+        {
+            if (IsFullScreen) IsFullScreen = false;
+            else IsFullScreen = true;
+            Camera.ZoomToLevel();
         }
 
 
@@ -135,6 +145,7 @@ namespace AlienEscape
             PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys, korkeus);
             palikka.Position = paikka;
             palikka.Image = seinanKuva;
+            palikka.Image.Scaling = ImageScaling.Nearest;
             // if (RandomGen.NextBool()) Image.Flip(kuva);
             // if (RandomGen.NextBool()) Image.Mirror(kuva);
             // palikka.Image = kuva;
@@ -297,8 +308,9 @@ namespace AlienEscape
         {
             pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
             pelaaja1.Position = paikka;
-            // TODO: Pelaajien kuvat
             pelaaja1.Color = Color.Red;
+            pelaaja1.Image = pelaaja1Kuva;
+            pelaaja1.Image.Scaling = ImageScaling.Nearest;
             Add(pelaaja1, 2);
         }
 
@@ -313,8 +325,9 @@ namespace AlienEscape
         {
             pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
             pelaaja2.Position = paikka;
-            // TODO: Pelaajien kuvat
             pelaaja2.Color = Color.Blue;
+            pelaaja2.Image = pelaaja2Kuva;
+            pelaaja2.Image.Scaling = ImageScaling.Nearest;
             Add(pelaaja2, 2);
         }
 
@@ -462,6 +475,7 @@ namespace AlienEscape
         private void PeliLoppuu()
         {
         ClearAll();
+        ConfirmExit();
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
     }

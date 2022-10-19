@@ -16,6 +16,12 @@
       <None Update="Content\luola.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Content\pelaaja1.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Content\pelaaja2.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Content\piikki.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
