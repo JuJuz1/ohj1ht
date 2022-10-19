@@ -61,11 +61,6 @@ namespace AlienEscape
         private static readonly Image piikinKuva = LoadImage("piikki.png");
 
         /// <summary>
-        /// Laserin toimintaa varten tehty totuusmuuttuja
-        /// </summary>
-        private static bool laserb;
-
-        /// <summary>
         /// Peli aloitetaan
         /// </summary>
         public override void Begin()
@@ -82,8 +77,8 @@ namespace AlienEscape
             LuoPisteLaskuri();
             AddCollisionHandler(pelaaja1, "piikki", Pelaaja1Vahingoittui);
             AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
-            AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittuilaser);
-            AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittuilaser);
+            AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittui);
+            AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittui);
 
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
@@ -183,18 +178,20 @@ namespace AlienEscape
             laser.Tag = "laser";
             Add(laser);
 
-            laserb = true;
-            //poistaa
             Timer ajastin = new Timer();
             ajastin.Interval = 1.0;
-            ajastin.Timeout += delegate { laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laserb = false; ; }; // Tehdään näkymättömäksi ja läpikuljettavaksi
+            ajastin.Timeout += delegate
+            {
+                if (laser.Tag.ToString() == "laser") // CollisionHandler käsittelee pelaajan ja laserin välisen törmäyksen vaan, jos Tag = "laser".
+                {
+                    laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laser.Tag = ""; // Jos Tag = "laser", muutetaan näkymättömäksi, poistetaan törmäykset ja tyhjennetään tagi
+                }
+                else
+                {
+                    laser.IsVisible = true; laser.IgnoresCollisionResponse = false; laser.Tag = "laser"; // Jos Tag != "laser", muutetaan näkyväksi, otetaan törmäykset käyttöön ja vaihdetaan Tagiksi "laser"
+                }
+            };
             ajastin.Start();
-
-            //lisää
-            Timer x = new Timer();
-            x.Interval = 2.0;
-            x.Timeout += delegate { laser.IsVisible = true; laser.IgnoresCollisionResponse = false; laserb = true; };
-            x.Start();
         }
 
         /// <summary>
@@ -458,27 +455,6 @@ namespace AlienEscape
             if (pelaaja2HP <= 0) PeliLoppuu();
         }
 
-        /// <summary>
-        /// Pelaaja 1 vahingoittuu laserista
-        /// </summary>
-        /// <param name="pelaaja"></param>
-        /// <param name="kohde"></param>
-        private void Pelaaja1Vahingoittuilaser(PhysicsObject pelaaja, PhysicsObject kohde)
-        {
-            if (laserb) { pelaaja1HP.Value -= 1; }
-            if (pelaaja1HP <= 0) PeliLoppuu();
-        }
-
-        /// <summary>
-        /// Pelaaja 2 vahingoittuu laseirsta
-        /// </summary>
-        /// <param name="pelaaja"></param>
-        /// <param name="kohde"></param>
-        private void Pelaaja2Vahingoittuilaser(PhysicsObject pelaaja, PhysicsObject kohde)
-        {
-            if (laserb) { pelaaja2HP.Value -= 1; }
-            if (pelaaja1HP <= 0) PeliLoppuu();
-        }
 
         /// <summary>
         /// Peli loppuu
