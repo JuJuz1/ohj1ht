@@ -2,6 +2,7 @@ using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -16,10 +17,10 @@ namespace AlienEscape
         private static readonly String[] kentta1 = {
             "XXXXXXXXXXXXXXXXXXXX",
             "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXX   EX",
-            "XXXXXXX   b     XXXX",
-            "X   V    XXXXXXXXXXX",
-            "X T     H      XXXXX",
+            "XXXXXXXX          EX",
+            "XXXXVX        b XXXX",
+            "X           XXXXXXXX",
+            "X T       H    XXXXX",
             "XXXXXXXXXXXXXX     X",
             "XXXXX        XXXX  X",
             "X    BXXX  X X    XX",
@@ -33,15 +34,18 @@ namespace AlienEscape
         private static PlatformCharacter pelaaja1;
         private static PlatformCharacter pelaaja2;
         private static PhysicsObject ovi;
+        private static PhysicsObject aarre;
         private static GameObject ovenPainike;
         private static GameObject hissinPainike;
         private static PhysicsObject hissi;
+        private static PhysicsObject exit;
 
         /// <summary>
         /// Esitellään laskurit
         /// </summary>
         private static IntMeter pelaaja1HP;
         private static IntMeter pelaaja2HP;
+        private static IntMeter aarteet;
 
         /// <summary>
         /// Määritellään pelikentän yhden ruudun leveys ja korkeus
@@ -57,6 +61,11 @@ namespace AlienEscape
         private static readonly Image piikinKuva = LoadImage("piikki.png");
 
         /// <summary>
+        /// Laserin toimintaa varten tehty totuusmuuttuja
+        /// </summary>
+        private static bool laserb;
+
+        /// <summary>
         /// Peli aloitetaan
         /// </summary>
         public override void Begin()
@@ -70,8 +79,11 @@ namespace AlienEscape
 
             LuoHPLaskuri1();
             LuoHPLaskuri2();
+            LuoPisteLaskuri();
             AddCollisionHandler(pelaaja1, "piikki", Pelaaja1Vahingoittui);
             AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
+            AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittuilaser);
+            AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittuilaser);
 
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
@@ -80,12 +92,12 @@ namespace AlienEscape
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
-            Keyboard.Listen(Key.S, ButtonState.Pressed, KaytaObjektia, "Pelaaja 1: Paina nappia / poimi esine", pelaaja1);
+            Keyboard.Listen(Key.S, ButtonState.Pressed, KaytaObjektia, "Pelaaja 1: Paina nappia / poimi esine / käytä portaali", pelaaja1);
 
             Keyboard.Listen(Key.Left, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
-            Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine", pelaaja2);
+            Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine / käytä portaali", pelaaja2);
 
             // TODO: Tarvitaanko 2 seuraavaa riviä mihinkään, voiko ne poistaa?
             // Image piikki1 = LoadImage("piikki.png");
@@ -102,8 +114,8 @@ namespace AlienEscape
             Level.Background.Image = luolanKuva;
             kentta.SetTileMethod('X', LuoPalikka);
             kentta.SetTileMethod('A', LuoPiikki);
-            // TODO: kentta.SetTileMethod('V', LuoLaser);
-            // TODO: kentta.SetTileMethod('T', LuoAarre);
+            kentta.SetTileMethod('V', LuoLaser);
+            kentta.SetTileMethod('T', LuoAarre);
             kentta.SetTileMethod('D', LuoOvi);
             kentta.SetTileMethod('B', LuoOvenPainike);
             kentta.SetTileMethod('b', LuoHissinPainike);
@@ -111,7 +123,7 @@ namespace AlienEscape
             kentta.SetTileMethod('1', LuoPelaaja1);
             kentta.SetTileMethod('2', LuoPelaaja2);
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
-            // TODO: kentta.SetTileMethod('E', LuoExit);
+            kentta.SetTileMethod('E', LuoExit);
 
             kentta.Execute(tileWidth, tileHeight); // Luodaan kenttä
         }
@@ -143,11 +155,62 @@ namespace AlienEscape
         /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoPiikki(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys*1.5, korkeus);
+            PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys * 1.5, korkeus);
             piikki.Image = piikinKuva;
             piikki.Position = paikka;
             piikki.Tag = "piikki";
             Add(piikki);
+        }
+
+        /// <summary>
+        /// Luodaan laser, joka kytkeytyy päälle ja pois tietyn ajanjakson välein
+        /// </summary>
+        /// <param name="paikka"></param>
+        /// <param name="leveys"></param>
+        /// <param name="korkeus"></param>
+        private void LuoLaser(Vector paikka, double leveys, double korkeus)
+        {
+            GameObject osoitin = new GameObject(leveys * 0.375, korkeus);
+            osoitin.X = paikka.X;
+            osoitin.Y = paikka.Y;
+            osoitin.Color = Color.Gray;
+            Add(osoitin);
+
+            PhysicsObject laser = PhysicsObject.CreateStaticObject(leveys * 0.05, korkeus * 2);
+            laser.X = paikka.X;
+            laser.Y = paikka.Y - korkeus * 1.5;
+            laser.Color = Color.Maroon;
+            laser.Tag = "laser";
+            Add(laser);
+
+            laserb = true;
+            //poistaa
+            Timer ajastin = new Timer();
+            ajastin.Interval = 1.0;
+            ajastin.Timeout += delegate { laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laserb = false; ; }; // Tehdään näkymättömäksi ja läpikuljettavaksi
+            ajastin.Start();
+
+            //lisää
+            Timer x = new Timer();
+            x.Interval = 2.0;
+            x.Timeout += delegate { laser.IsVisible = true; laser.IgnoresCollisionResponse = false; laserb = true; };
+            x.Start();
+        }
+
+        /// <summary>
+        /// Luodaan aarre, jonka pelaaja(t) voi kerätä
+        /// </summary>
+        /// <param name="paikka"></param>
+        /// <param name="leveys"></param>
+        /// <param name="korkeus"></param>
+        private void LuoAarre(Vector paikka, double leveys, double korkeus)
+        {
+            aarre = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Star);
+            aarre.Position = paikka;
+            aarre.IgnoresCollisionResponse = true;
+            // TODO: aarre.Image = ?;
+            aarre.Color = Color.Gold;
+            Add(aarre);
         }
 
 
@@ -192,7 +255,7 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoHissinPainike(Vector paikka, double leveys, double korkeus)
         {
-            hissinPainike = new GameObject(leveys * 0.3, korkeus * 0.2);
+            hissinPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
             // TODO: hissinPainike.Image = jotain;
             hissinPainike.Position = paikka;
             hissinPainike.Shape = Shape.Rectangle;
@@ -214,12 +277,14 @@ namespace AlienEscape
             hissikuilu.Shape = Shape.Rectangle;
             hissikuilu.Color = Color.AshGray;
             Add(hissikuilu);
+            
 
-            hissi = new PhysicsObject(leveys * 1.8, korkeus * 0.2); // Ei voi olla static jos haluaa liikuttaa
+            hissi = new PhysicsObject(leveys * 2, korkeus * 0.2); // Ei voi olla static jos haluaa liikuttaa
             hissi.X = paikka.X - leveys * 0.5;
-            hissi.Y = paikka.Y - korkeus * 0.6;
+            hissi.Y = paikka.Y - korkeus * 0.5;
             hissi.Shape = Shape.Rectangle;
-            hissi.Color = Color.Maroon;
+            hissi.Color = Color.DarkAzure;
+            hissi.CanRotate = false;
             hissi.MakeOneWay();
             Add(hissi, 1);
         }
@@ -256,6 +321,19 @@ namespace AlienEscape
             Add(pelaaja2, 2);
         }
 
+        /// <summary>
+        /// Luodaan Exit-portaali, josta päästään seuraavaan kenttään
+        /// </summary>
+        private void LuoExit(Vector paikka, double leveys, double korkeus)
+        {
+            exit = PhysicsObject.CreateStaticObject(leveys*0.75, korkeus, Shape.Circle);
+            exit.Position = paikka;
+            exit.Color = Color.Harlequin;
+            exit.IgnoresCollisionResponse = true;
+            Add(exit);
+
+        }
+
 
         /// <summary>
         /// Luodaan pelaajan 1 hitpoint laskuri ja sen näyttö
@@ -265,7 +343,7 @@ namespace AlienEscape
             pelaaja1HP = new IntMeter(3);
             pelaaja1HP.MinValue = 0;
             Label nayttoHP1 = new Label();
-            nayttoHP1.X = Screen.Left + 150;
+            nayttoHP1.X = Screen.Left + 100;
             nayttoHP1.Y = Screen.Top - 50;
             nayttoHP1.TextColor = Color.White;
             nayttoHP1.Color = Color.Red;
@@ -283,13 +361,30 @@ namespace AlienEscape
             pelaaja2HP = new IntMeter(3);
             pelaaja2HP.MinValue = 0;
             Label nayttoHP2 = new Label();
-            nayttoHP2.X = Screen.Left + 300;
+            nayttoHP2.X = Screen.Left + 200;
             nayttoHP2.Y = Screen.Top - 50;
             nayttoHP2.TextColor = Color.White;
             nayttoHP2.Color = Color.Blue;
             nayttoHP2.IntFormatString = " HP = {0:D1} ";
             nayttoHP2.BindTo(pelaaja2HP);
             Add(nayttoHP2);
+        }
+
+        /// <summary>
+        /// Luodaan kerättyjen aarteiden laskuri
+        /// </summary>
+        private void LuoPisteLaskuri()
+        {
+            aarteet = new IntMeter(0);
+            aarteet.MaxValue = 5;
+            Label nayttoAarteet = new Label();
+            nayttoAarteet.X = Screen.Left + 320;
+            nayttoAarteet.Y = Screen.Top - 50;
+            nayttoAarteet.TextColor = Color.Black;
+            nayttoAarteet.Color = Color.Gold;
+            nayttoAarteet.IntFormatString = " Aarteet = {0:D1} ";
+            nayttoAarteet.BindTo(aarteet);
+            Add(nayttoAarteet);
         }
 
 
@@ -320,11 +415,26 @@ namespace AlienEscape
 
             if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3) // Hissiä nostetaan
             {
-                hissi.MoveTo(new Vector(hissi.X * 2, hissi.Y * 2), 100); // ei toimi oikein
-                hissinPainike.Color = Color.Green;
+                // hissi.IgnoresGravity = true;
+                hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
+                hissinPainike.Color = Color.Purple;
+            }
+
+            if (Math.Abs(pelaaja.X - aarre.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - aarre.Y) < tileHeight * 0.3) // Poimitaan aarre
+            {
+                aarteet.Value += 1;
+                // TODO: äänet
+                aarre.Destroy();
+                aarre.X = Screen.Left;
+                aarre.Y = Screen.Top;
+            }
+
+            if (Math.Abs(pelaaja1.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja1.Y - exit.Y) < tileHeight * 0.5
+             && Math.Abs(pelaaja2.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja2.Y - exit.Y) < tileHeight * 0.5) // Käytetään portaali
+            {
+                PeliLoppuu();
             }
         }
-
 
         /// <summary>
         /// Pelaaja 1 törmää johonkin ja menettää yhden HP:n
@@ -336,7 +446,6 @@ namespace AlienEscape
             pelaaja1HP.Value -= 1;
             if (pelaaja1HP <= 0) PeliLoppuu();
         }
-
 
         /// <summary>
         /// Pelaaja 2 törmää johonkin ja menettää yhden HP:n
@@ -350,12 +459,34 @@ namespace AlienEscape
         }
 
         /// <summary>
+        /// Pelaaja 1 vahingoittuu laserista
+        /// </summary>
+        /// <param name="pelaaja"></param>
+        /// <param name="kohde"></param>
+        private void Pelaaja1Vahingoittuilaser(PhysicsObject pelaaja, PhysicsObject kohde)
+        {
+            if (laserb) { pelaaja1HP.Value -= 1; }
+            if (pelaaja1HP <= 0) PeliLoppuu();
+        }
+
+        /// <summary>
+        /// Pelaaja 2 vahingoittuu laseirsta
+        /// </summary>
+        /// <param name="pelaaja"></param>
+        /// <param name="kohde"></param>
+        private void Pelaaja2Vahingoittuilaser(PhysicsObject pelaaja, PhysicsObject kohde)
+        {
+            if (laserb) { pelaaja2HP.Value -= 1; }
+            if (pelaaja1HP <= 0) PeliLoppuu();
+        }
+
+        /// <summary>
         /// Peli loppuu
         /// </summary>
         private void PeliLoppuu()
         {
-            ClearAll();
-            // TODO: äänet, tekstiä, aloita alusta-nappi
+        ClearAll();
+        // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
     }
 }
