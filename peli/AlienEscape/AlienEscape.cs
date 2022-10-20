@@ -21,7 +21,7 @@ namespace AlienEscape
             "XXXXVX        b XXXX",
             "X           XXXXXXXX",
             "X T       H    XXXXX",
-            "XXXXXXXXXXXXXX     X",
+            "XXXXXXXXX  XXX     X",
             "XXXXX        XXXX  X",
             "X    BXXX  X X    XX",
             "X   XXX   XX     XXX",
@@ -146,6 +146,7 @@ namespace AlienEscape
             palikka.Position = paikka;
             palikka.Image = seinanKuva;
             palikka.Image.Scaling = ImageScaling.Nearest;
+            palikka.CollisionIgnoreGroup = 1;
             // if (RandomGen.NextBool()) Image.Flip(kuva);
             // if (RandomGen.NextBool()) Image.Mirror(kuva);
             // palikka.Image = kuva;
@@ -289,10 +290,14 @@ namespace AlienEscape
 
             hissi = new PhysicsObject(leveys * 2, korkeus * 0.2); // Ei voi olla static jos haluaa liikuttaa
             hissi.X = paikka.X - leveys * 0.5;
-            hissi.Y = paikka.Y - korkeus * 0.5;
+            hissi.Y = paikka.Y - korkeus * 0.6;
             hissi.Shape = Shape.Rectangle;
             hissi.Color = Color.DarkAzure;
             hissi.CanRotate = false;
+            hissi.Mass = 1000000;
+            hissi.IgnoresGravity = true;
+            hissi.CollisionIgnoreGroup = 1;
+            hissi.Tag = "alhaalla";
             hissi.MakeOneWay();
             Add(hissi, 1);
         }
@@ -423,11 +428,22 @@ namespace AlienEscape
                 ovi.Destroy();
             }
 
-            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3) // Hissiä nostetaan
+            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "alhaalla") // Hissiä nostetaan
             {
-                // hissi.IgnoresGravity = true;
+                
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
                 hissinPainike.Color = Color.Purple;
+                hissi.Tag = "liikkeessa";
+                Timer.SingleShot(1.5, delegate { hissi.Tag = "ylhaalla"; });
+            }
+
+            else if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "ylhaalla") // Hissiä nostetaan
+            {
+
+                hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
+                hissinPainike.Color = Color.Red;
+                hissi.Tag = "liikkeessa";
+                Timer.SingleShot(1.5, delegate { hissi.Tag = "alhaalla"; });
             }
 
             if (Math.Abs(pelaaja.X - aarre.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - aarre.Y) < tileHeight * 0.3) // Poimitaan aarre
