@@ -125,8 +125,8 @@ namespace AlienEscape
             kentta.SetTileMethod('B', LuoOvenPainike);
             kentta.SetTileMethod('b', LuoHissinPainike);
             kentta.SetTileMethod('H', LuoHissi);
-            kentta.SetTileMethod('1', LuoPelaaja1);
-            kentta.SetTileMethod('2', LuoPelaaja2);
+            kentta.SetTileMethod('1', LuoPelaaja1, this);
+            kentta.SetTileMethod('2', LuoPelaaja2, this);
             // TODO: kentta.SetTileMethod('*', LuoVihollinen);
             kentta.SetTileMethod('E', LuoExit);
 
@@ -309,14 +309,10 @@ namespace AlienEscape
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
-        private void LuoPelaaja1(Vector paikka, double leveys, double korkeus)
+        /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
+        private void LuoPelaaja1(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
-            pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
-            pelaaja1.Position = paikka;
-            pelaaja1.Color = Color.Red;
-            pelaaja1.Image = pelaaja1Kuva;
-            pelaaja1.Image.Scaling = ImageScaling.Nearest;
-            Add(pelaaja1, 2);
+            pelaaja1 = new Pelaaja(peli, pelaaja1Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
         }
 
 
@@ -326,14 +322,10 @@ namespace AlienEscape
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
-        private void LuoPelaaja2(Vector paikka, double leveys, double korkeus)
+        /// /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
+        private void LuoPelaaja2(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
-            pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
-            pelaaja2.Position = paikka;
-            pelaaja2.Color = Color.Blue;
-            pelaaja2.Image = pelaaja2Kuva;
-            pelaaja2.Image.Scaling = ImageScaling.Nearest;
-            Add(pelaaja2, 2);
+            pelaaja2 = new Pelaaja(peli, pelaaja2Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
         }
 
         /// <summary>
@@ -494,5 +486,18 @@ namespace AlienEscape
         ConfirmExit();
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
+    }
+
+    public class Pelaaja : PlatformCharacter
+    {
+        public Pelaaja(PhysicsGame peli, Image kuva, Vector paikka, double leveys, double korkeus, Shape muoto): base(leveys, korkeus, muoto)
+        {
+            this.Position = paikka;
+            this.Image = kuva;
+            this.Image.Scaling = ImageScaling.Nearest;
+            peli.Add(this);
+        }
+
+
     }
 }
