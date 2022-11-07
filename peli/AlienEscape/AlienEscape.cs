@@ -113,7 +113,7 @@ namespace AlienEscape
         {
             ClearAll();
 
-            kenttaNro++;
+            if (kenttaNro == 1) kenttaNro++;
 
             if (kenttaNro > 3) PeliLoppuu();
             else LuoKentta("kentta" + kenttaNro);
