@@ -13,22 +13,6 @@ namespace AlienEscape
 {
     public class AlienEscape : PhysicsGame
     {
-        /*
-        private static readonly String[] kentta1 = {
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXX          EX",
-            "XXXXVX        b XXXX",
-            "X           XXXXXXXX",
-            "X T       H    XXXXX",
-            "XXXXXXXXX  XXX     X",
-            "XXXXX        XXXX  X",
-            "X    BXXX  X X    XX",
-            "X   XXX   XX     XXX",
-            "X12 D   XXXXXXX XXXX",
-            "XXXXXXXXXXXXXXXAXXXX",
-            };
-        */
         /// <summary>
         /// Esitellään oliot, jotka tarvitaan attribuutteina
         /// </summary>
@@ -131,6 +115,8 @@ namespace AlienEscape
             LuoMuut(); // Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
         }
 
+        // TODO: Lisää kenttiä ja lopetus
+
         /// <summary>
         /// Luodaan valikko, joka aukeaa Escape painettaessa kentän ollessa käynnissä
         /// </summary>
@@ -205,6 +191,9 @@ namespace AlienEscape
             AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
             AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittui);
             AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittui);
+            AddCollisionHandler(pelaaja1, "easter_egg", TuhoaKohde);
+            AddCollisionHandler(pelaaja2, "easter_egg", TuhoaKohde);
+
 
             LuoOhjaimet();
         }
@@ -247,7 +236,6 @@ namespace AlienEscape
             palikka.Position = paikka;
             palikka.Image = seinanKuva;
             palikka.Image.Scaling = ImageScaling.Nearest;
-            // palikka.CollisionIgnoreGroup = 1; onko tarpeellinen
             // if (RandomGen.NextBool()) Image.Flip(kuva);
             // if (RandomGen.NextBool()) Image.Mirror(kuva);
             Add(palikka);
@@ -262,7 +250,7 @@ namespace AlienEscape
             palikka2.IgnoresGravity = true;
             palikka2.Image.Scaling = ImageScaling.Nearest;
             palikka2.Tag = "easter_egg";
-            Add(palikka2, -1);
+            Add(palikka2);
         }
 
         /// <summary>
@@ -408,7 +396,6 @@ namespace AlienEscape
             hissi.CanRotate = false;
             hissi.Mass = 1000000;
             hissi.IgnoresGravity = true;
-            hissi.CollisionIgnoreGroup = 1;
             hissi.Tag = "alhaalla";
             hissi.MakeOneWay();
             Add(hissi, 1);
@@ -591,6 +578,15 @@ namespace AlienEscape
             if (pelaaja2HP <= 0) PeliLoppuu();
         }
 
+        /// <summary>
+        /// Tuhoaa törmäyksen kohteen
+        /// </summary>
+        /// <param name="tormaaja">Objekti, joka törmäsi</param>
+        /// <param name="kohde">Törmäyksen kohde</param>
+        private void TuhoaKohde(PhysicsObject tormaaja, PhysicsObject kohde)
+        {
+            kohde.Destroy();
+        }
 
         /// <summary>
         /// Peli loppuu
