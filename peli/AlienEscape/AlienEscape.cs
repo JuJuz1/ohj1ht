@@ -108,11 +108,12 @@ namespace AlienEscape
         /// </summary>
         private void LuoKenttavalikko()
         {
-            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2");
+            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2", "Takaisin");
             Add(kenttavalikko);
 
             kenttavalikko.AddItemHandler(0, LuoKentta, 1);
             kenttavalikko.AddItemHandler(1, LuoKentta, 2);
+            kenttavalikko.AddItemHandler(2, LuoAlkuvalikko);
         }
 
         /// <summary>
