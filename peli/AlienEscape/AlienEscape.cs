@@ -53,6 +53,7 @@ namespace AlienEscape
         /// </summary>
         private static readonly int tileWidth = 80;
         private static readonly int tileHeight = 80;
+        private static readonly int maxKenttaNro = 2;
         private static int kenttaNro = 1;
         private static int HP1 = 3;
         private static int HP2 = 3;
@@ -74,17 +75,98 @@ namespace AlienEscape
         /// </summary>
         public override void Begin()
         {
-            LuoKentta("kentta1");
-            Gravity = new Vector(0, -1000);
+            LuoAlkuvalikko();
 
-            Muu();
+            Gravity = new Vector(0, -1000);
+        }
+
+        /// <summary>
+        /// Luodaan peliin alkuvalikko
+        /// </summary>
+        private void LuoAlkuvalikko()
+        {
+            ClearAll();
+
+            MultiSelectWindow alkuvalikko = new MultiSelectWindow("Alkuvalikko", "Aloita peli", "Valitse kenttä", "Lopeta");
+            Add(alkuvalikko);
+
+            alkuvalikko.AddItemHandler(0, AloitaPeli);
+            alkuvalikko.AddItemHandler(1, LuoKenttavalikko);
+            alkuvalikko.AddItemHandler(2, ConfirmExit);
+        }
+
+        /// <summary>
+        /// Aloitetaan peli ensimmäisestä kentästä
+        /// </summary>
+        private void AloitaPeli()
+        {
+            LuoKentta(1);
+        }
+
+        /// <summary>
+        /// Luodaan valikko, josta voi valita mistä kentästä aloitetaan
+        /// </summary>
+        private void LuoKenttavalikko()
+        {
+            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2");
+            Add(kenttavalikko);
+
+            kenttavalikko.AddItemHandler(0, LuoKentta, 1);
+            kenttavalikko.AddItemHandler(1, LuoKentta, 2);
+        }
+
+        /// <summary>
+        /// Luodaan kenttä
+        /// </summary>
+        /// <param name="nro">Luotavan kentän numero</param>
+        private void LuoKentta(int nro)
+        {
+            kenttaNro = nro;
+            ClearAll();
+
+            if (kenttaNro > maxKenttaNro) PeliLoppuu();
+            else KenttaTiedostosta("kentta" + kenttaNro);
+
+            LuoMuut(); // Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
+        }
+
+        /// <summary>
+        /// Luodaan valikko, joka aukeaa Escape painettaessa kentän ollessa käynnissä
+        /// </summary>
+        private void LuoPelivalikko()
+        {
+            MultiSelectWindow pelivalikko = new MultiSelectWindow("Valikko", "Jatka peliä", "Alkuvalikko", "Lopeta");
+            Add(pelivalikko);
+
+            pelivalikko.AddItemHandler(0, SuljeValikko, pelivalikko);
+            pelivalikko.AddItemHandler(1, VahvistaAlkuvalikkoon);
+            pelivalikko.AddItemHandler(2, ConfirmExit);
+        }
+
+        /// <summary>
+        /// Suljetaan valikko
+        /// </summary>
+        private void SuljeValikko(MultiSelectWindow valikko)
+        {
+            valikko.Destroy();         
+        }
+
+        /// <summary>
+        /// Kysyy pelaajalta haluaako hän mennä takaisin alkuvalikkoon.
+        /// Jos kyllä, mennään alkuvalikkoon.
+        /// </summary>
+        private void VahvistaAlkuvalikkoon()
+        {
+            YesNoWindow vahvistusIkkuna = new YesNoWindow("Menetät edistymisesi pelissä, jos palaat takaisin alkuvalikkoon.\nHaluatko varmasti palata takaisin alkuvalikkoon?");
+            vahvistusIkkuna.Yes += LuoAlkuvalikko;
+            Add(vahvistusIkkuna);
         }
 
         /// <summary>
         /// Luodaan kenttä tekstitiedostosta
         /// </summary>
         /// <param name="KenttaTiedosto">Tiedosto, joka luetaan</param>
-        private void LuoKentta(string KenttaTiedosto)
+        private void KenttaTiedostosta(string KenttaTiedosto)
         {
             TileMap kentta = TileMap.FromLevelAsset(KenttaTiedosto);
             Level.Background.Image = luolanKuva;
@@ -107,21 +189,9 @@ namespace AlienEscape
         }
 
         /// <summary>
-        /// Luodaan pelissä seuraava kenttä
+        /// Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
         /// </summary>
-        private void SeuraavaKentta()
-        {
-            ClearAll();
-
-            if (kenttaNro == 1) kenttaNro++;
-
-            if (kenttaNro > 3) PeliLoppuu();
-            else LuoKentta("kentta" + kenttaNro);
-
-            Muu();
-        }
-
-        private void Muu()
+        private void LuoMuut()
         {
             LuoHPLaskuri1(HP1);
             LuoHPLaskuri2(HP2);
@@ -135,15 +205,15 @@ namespace AlienEscape
             AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittui);
             AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittui);
 
-            Ohjaimet();
+            LuoOhjaimet();
         }
 
-        private void Ohjaimet()
+        private void LuoOhjaimet()
         {
-            Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+            Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoPelivalikko, "Avaa valikko");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
             Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
-            Keyboard.Listen(Key.Y, ButtonState.Pressed, SeuraavaKentta, "Seuraava kenttä");
+            Keyboard.Listen(Key.Y, ButtonState.Pressed, LuoKentta, "Seuraava kenttä", ++kenttaNro);
 
             // TODO: Ohjaimien ryhmittely?
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
@@ -492,7 +562,7 @@ namespace AlienEscape
              && Math.Abs(pelaaja2.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja2.Y - exit.Y) < tileHeight * 0.5) // Käytetään portaali
             {
                kenttaNro++;
-               SeuraavaKentta();
+               LuoKentta(kenttaNro);
             }
         }
 
