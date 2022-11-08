@@ -76,7 +76,7 @@ namespace AlienEscape
 
             alkuvalikko.AddItemHandler(0, AloitaPeli);
             alkuvalikko.AddItemHandler(1, LuoKenttavalikko);
-            alkuvalikko.AddItemHandler(2, ConfirmExit);
+            alkuvalikko.AddItemHandler(2, ConfirmExit, LuoAlkuvalikko);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace AlienEscape
 
             pelivalikko.AddItemHandler(0, SuljeValikko, pelivalikko);
             pelivalikko.AddItemHandler(1, VahvistaAlkuvalikkoon);
-            pelivalikko.AddItemHandler(2, ConfirmExit);
+            pelivalikko.AddItemHandler(2, ConfirmExit, LuoAlkuvalikko);
         }
 
         /// <summary>
@@ -304,6 +304,8 @@ namespace AlienEscape
                 }
             };
             ajastin.Start();
+
+            // TODO: Korjaa: pelaaja ei ota vahinkoa laserin käynnistyessä, jos pelaaja on laserin kohdalla
         }
 
         /// <summary>
@@ -594,7 +596,7 @@ namespace AlienEscape
         private void PeliLoppuu()
         {
         ClearAll();
-        ConfirmExit();
+        ConfirmExit(LuoAlkuvalikko);
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
     }
