@@ -19,6 +19,9 @@
       <None Update="Content\kentta2.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Content\kentta3.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Content\luola.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

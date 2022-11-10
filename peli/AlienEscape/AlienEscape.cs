@@ -37,12 +37,12 @@ namespace AlienEscape
         /// </summary>
         private static readonly int tileWidth = 80;
         private static readonly int tileHeight = 80;
-        private static readonly int maxKenttaNro = 2;
+        private static readonly int maxKenttaNro = 5;
         private static int kenttaNro = 1;
         private static int HP1 = 3;
         private static int HP2 = 3;
+        private static int HPvihu = 5;
         private static int pisteet = 0;
-
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
@@ -92,12 +92,13 @@ namespace AlienEscape
         /// </summary>
         private void LuoKenttavalikko()
         {
-            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2", "Takaisin");
+            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2", "Kenttä 3", "Takaisin");
             Add(kenttavalikko);
 
             kenttavalikko.AddItemHandler(0, LuoKentta, 1);
             kenttavalikko.AddItemHandler(1, LuoKentta, 2);
-            kenttavalikko.AddItemHandler(2, LuoAlkuvalikko);
+            kenttavalikko.AddItemHandler(2, LuoKentta, 3);
+            kenttavalikko.AddItemHandler(3, LuoAlkuvalikko);
         }
 
         /// <summary>
@@ -168,7 +169,7 @@ namespace AlienEscape
             kentta.SetTileMethod('H', LuoHissi);
             kentta.SetTileMethod('1', LuoPelaaja1, this);
             kentta.SetTileMethod('2', LuoPelaaja2, this);
-            // TODO: kentta.SetTileMethod('*', LuoVihollinen);
+            kentta.SetTileMethod('*', LuoVihollinen);
             kentta.SetTileMethod('E', LuoExit);
             // kentta.SetTileMethod('K', LuoExit);
 
@@ -191,9 +192,10 @@ namespace AlienEscape
             AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
             AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittui);
             AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittui);
+            AddCollisionHandler(pelaaja1, "vihu", Pelaaja1Vahingoittui);
+            AddCollisionHandler(pelaaja2, "vihu", Pelaaja2Vahingoittui);
             AddCollisionHandler(pelaaja1, "easter_egg", TuhoaKohde);
             AddCollisionHandler(pelaaja2, "easter_egg", TuhoaKohde);
-
 
             LuoOhjaimet();
         }
@@ -210,11 +212,13 @@ namespace AlienEscape
             Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
             Keyboard.Listen(Key.S, ButtonState.Pressed, KaytaObjektia, "Pelaaja 1: Paina nappia / poimi esine / käytä portaali", pelaaja1);
+            Keyboard.Listen(Key.F, ButtonState.Down, AmmuAseella, "Ammu", pelaaja1);
 
             Keyboard.Listen(Key.Left, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
             Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine / käytä portaali", pelaaja2);
+            Keyboard.Listen(Key.RightShift, ButtonState.Down, AmmuAseella, "Ammu", pelaaja2);
         }
 
         private void VaihdaFullScreen()
@@ -405,7 +409,7 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Luodaan pelaaja 1
+        /// Luodaan pelaaja 1 ja ase sekä aseen lisäystä tukevat komennot
         /// </summary>
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
@@ -414,19 +418,114 @@ namespace AlienEscape
         private void LuoPelaaja1(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
             pelaaja1 = new Pelaaja(peli, pelaaja1Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja1.Weapon = new AssaultRifle(30, 15);
+            // pelaaja1.Weapon.Position = pelaaja1.Position; alunperin jo keskellä
+            pelaaja1.Weapon.AmmoIgnoresGravity = true;
+            pelaaja1.Weapon.CanHitOwner = false;
+            pelaaja1.Weapon.FireRate = 3;
+            pelaaja1.Weapon.Power.DefaultValue = 200;
+            pelaaja1.Weapon.ProjectileCollision = AmmusOsui;
+            // pelaaja1.Weapon.AttackSound = ?;
+            pelaaja1.Weapon.IsVisible = false;
+            pelaaja1.Weapon.Ammo.Value = 0;
+
+            if (2 < kenttaNro)
+            {
+                pelaaja1.Weapon.IsVisible = true;
+                pelaaja1.Weapon.Ammo.Value = 10000;
+                MessageDisplay.TextColor = Color.Black; // TODO: Parempi paikka näille ? Ei viittis laittaa luokenttään
+                MessageDisplay.Font = new Font(30);
+                MessageDisplay.Add("Käytössänne on nyt aseet! Paina F1 ohjeita varten!");
+                MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
+            }
         }
 
 
         /// <summary>
-        /// Luodaan pelaaja 2
+        /// Luodaan pelaaja 2 ja ase
         /// </summary>
         /// <param name="paikka">Piste, johon pelaaja luodaan</param>
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
-        /// /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
+        /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
         private void LuoPelaaja2(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
             pelaaja2 = new Pelaaja(peli, pelaaja2Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2.Weapon = new AssaultRifle(30, 15);
+            // pelaaja2.Weapon.Position = pelaaja2.Position; alunperin jo keskellä
+            pelaaja2.Weapon.AmmoIgnoresGravity = true;
+            pelaaja2.Weapon.CanHitOwner = false;
+            pelaaja2.Weapon.FireRate = 3;
+            pelaaja2.Weapon.Power.DefaultValue = 200;
+            pelaaja2.Weapon.ProjectileCollision = AmmusOsui;
+            // pelaaja2.Weapon.AttackSound = ?;
+            pelaaja2.Weapon.IsVisible = false;
+            pelaaja2.Weapon.Ammo.Value = 0;
+
+            if (2 < kenttaNro)
+            {
+                pelaaja2.Weapon.IsVisible = true;
+                pelaaja2.Weapon.Ammo.Value = 10000;
+            }
+        }
+
+        /// <summary>
+        /// Luodaan edestakaisin värähtelevä vihollinen, johon törmätessä menettää HP. Vihollisen voi ampua
+        /// </summary>
+        /// <param name="paikka">Piste, johon pelaaja luodaan</param>
+        /// <param name="leveys">1 ruudun leveys pelikentällä</param>
+        /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
+        private void LuoVihollinen(Vector paikka, double leveys, double korkeus)
+        {
+            PhysicsObject vihollinen = new PhysicsObject(leveys * 0.7, korkeus*0.7); //Shape.Heart);
+            vihollinen.Tag = "vihu";
+            vihollinen.X = paikka.X;
+            vihollinen.Y = paikka.Y;
+            vihollinen.IgnoresGravity = true;
+            vihollinen.IgnoresCollisionResponse = true;
+            // vihollinen.Image = ?;
+            // vihollinen.Image.Scaling = ImageScaling.Nearest;
+            vihollinen.Oscillate(Vector.UnitX, tileWidth * 1.15, RandomGen.NextDouble(0.5, 0.75));
+            Add(vihollinen);
+        }
+
+        /// <summary>
+        /// Pelaajan ammuttaessa aseella suoritetaan tämä
+        /// </summary>
+        /// <param name="pelaaja">pelaaja, joka ampuu</param>
+        private void AmmuAseella(PlatformCharacter pelaaja)
+        {
+            PhysicsObject ammus = pelaaja.Weapon.Shoot();
+
+            /*
+            if (ammus == null)
+            {
+                MessageDisplay.Color = Color.White;
+                MessageDisplay.MaxMessageCount = 1;
+                MessageDisplay.MessageTime = new TimeSpan(0, 0, 3);
+                MessageDisplay.Add("Jotain meni väärin");
+            }
+            */
+        }
+
+        /// <summary>
+        /// Kun pelaaja ampuu ammuksen ja se osuu johonkin tullaan tähän aliohjelmaan
+        /// </summary>
+        /// <param name="ammus"></param>
+        /// <param name="kohde"></param>
+        private void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
+        {
+            ammus.Destroy();
+
+            if (kohde.Tag.ToString() == "vihu")
+            {
+                HPvihu--;
+                if (HPvihu <= 0)
+                {
+                    kohde.Destroy();
+                    HPvihu = 5;
+                }
+            }
         }
 
         /// <summary>
