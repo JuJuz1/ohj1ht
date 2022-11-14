@@ -37,7 +37,7 @@ namespace AlienEscape
         /// </summary>
         private const int tileWidth = 80;
         private const int tileHeight = 80;
-        private const int maxKenttaNro = 5;
+        private const int maxKenttaNro = 3; // TODO: Muutetaan maxKenttaNro sitä mukaa, kun lisätään kenttiä
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
@@ -116,7 +116,7 @@ namespace AlienEscape
             LuoMuut(); // Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
         }
 
-        // TODO: Lisää kenttiä ja lopetus
+        // TODO: Lisää kenttiä ja lopetus, muista muuttaa maxKenttaNro arvoa, kun lisätään kenttiä
 
         /// <summary>
         /// Luodaan valikko, joka aukeaa Escape painettaessa kentän ollessa käynnissä
@@ -624,32 +624,40 @@ namespace AlienEscape
         /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
+            /*
             if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - ovenPainike.Y) < tileHeight * 0.3) // Avataan ovi
+            */
+            if (Etaisyys(pelaaja, ovenPainike) < tileWidth * 0.3)
             {
                 ovenPainike.Color = Color.Green;
                 // TODO: lisää oven avautumiselle ääni
                 ovi.Destroy();
             }
-
+            /*
             if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "alhaalla") // Hissiä nostetaan
+            */
+            if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
             {
-                
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
                 hissinPainike.Color = Color.Purple;
                 hissi.Tag = "liikkeessa";
                 Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; });
             }
-
+            /*
             else if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "ylhaalla") // Hissiä nostetaan
+            */
+            else if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
             {
-
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
                 hissinPainike.Color = Color.Red;
                 hissi.Tag = "liikkeessa";
                 Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; });
             }
 
+            /*
             if (Math.Abs(pelaaja.X - aarre.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - aarre.Y) < tileHeight * 0.3) // Poimitaan aarre
+            */
+            if (Etaisyys(pelaaja, aarre) < tileWidth * 0.5)
             {
                 aarteet.Value += 1;
                 pisteet++;
@@ -659,12 +667,26 @@ namespace AlienEscape
                 aarre.Y = Screen.Top;
             }
 
+            /*
             if (Math.Abs(pelaaja1.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja1.Y - exit.Y) < tileHeight * 0.5
-             && Math.Abs(pelaaja2.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja2.Y - exit.Y) < tileHeight * 0.5) // Käytetään portaali
+            && Math.Abs(pelaaja2.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja2.Y - exit.Y) < tileHeight * 0.5) // Käytetään portaali
+            */
+            if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
             {
                kenttaNro++;
                LuoKentta(kenttaNro);
             }
+        }
+
+        /// <summary>
+        /// Laskee kahden olion välisen etäisyyden
+        /// </summary>
+        /// <param name="o1">ensimmäinen olio</param>
+        /// <param name="o2">toinen olio</param>
+        /// <returns>etäisyys</returns>
+        private double Etaisyys(GameObject o1, GameObject o2)
+        {
+            return Math.Sqrt((o1.X - o2.X) * (o1.X - o2.X) + (o1.Y - o2.Y) * (o1.Y - o2.Y)); // c = sqrt(a^2 + b^2)
         }
 
         /// <summary>
