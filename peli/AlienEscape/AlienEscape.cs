@@ -35,9 +35,9 @@ namespace AlienEscape
         /// <summary>
         /// Määritellään pelikentän luomiseen ja pelaamiseen tarvittavat lvuut/muuttujat
         /// </summary>
-        private readonly int tileWidth = 80;
-        private readonly int tileHeight = 80;
-        private readonly int maxKenttaNro = 5;
+        private const int tileWidth = 80;
+        private const int tileHeight = 80;
+        private const int maxKenttaNro = 5;
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
@@ -187,17 +187,36 @@ namespace AlienEscape
 
             Camera.ZoomToLevel();
             Level.CreateBorders();
+            
+            string[] vahingoittavatTagit = { "piikki", "laser", "vihu" };
 
-            AddCollisionHandler(pelaaja1, "piikki", Pelaaja1Vahingoittui);
-            AddCollisionHandler(pelaaja2, "piikki", Pelaaja2Vahingoittui);
-            AddCollisionHandler(pelaaja1, "laser", Pelaaja1Vahingoittui);
-            AddCollisionHandler(pelaaja2, "laser", Pelaaja2Vahingoittui);
-            AddCollisionHandler(pelaaja1, "vihu", Pelaaja1Vahingoittui);
-            AddCollisionHandler(pelaaja2, "vihu", Pelaaja2Vahingoittui);
+            foreach (string tag in vahingoittavatTagit)
+            {
+                AddCollisionHandler(pelaaja1, tag, Pelaaja1Vahingoittui);
+                AddCollisionHandler(pelaaja2, tag, Pelaaja2Vahingoittui);
+            }
+
             AddCollisionHandler(pelaaja1, "easter_egg", TuhoaKohde);
             AddCollisionHandler(pelaaja2, "easter_egg", TuhoaKohde);
 
             LuoOhjaimet();
+
+            if (kenttaNro > 2) AktivoiAseet();
+        }
+
+        /// <summary>
+        /// Muutetaan aseet näkyviksi ja mahdollistetaan niillä ampuminen
+        /// </summary>
+        private void AktivoiAseet()
+        {
+            pelaaja1.Weapon.IsVisible = true;
+            pelaaja1.Weapon.Ammo.Value = 10000;
+            pelaaja2.Weapon.IsVisible = true;
+            pelaaja2.Weapon.Ammo.Value = 10000;
+            MessageDisplay.TextColor = Color.Black;
+            MessageDisplay.Font = new Font(30);
+            MessageDisplay.Add("Käytössänne on nyt aseet! Paina F1 ohjeita varten!");
+            MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
         }
 
         /// <summary>
@@ -437,16 +456,6 @@ namespace AlienEscape
             // pelaaja1.Weapon.AttackSound = ?;
             pelaaja1.Weapon.IsVisible = false;
             pelaaja1.Weapon.Ammo.Value = 0;
-
-            if (2 < kenttaNro)
-            {
-                pelaaja1.Weapon.IsVisible = true;
-                pelaaja1.Weapon.Ammo.Value = 10000;
-                MessageDisplay.TextColor = Color.Black; // TODO: Parempi paikka näille ? Ei viittis laittaa luokenttään
-                MessageDisplay.Font = new Font(30);
-                MessageDisplay.Add("Käytössänne on nyt aseet! Paina F1 ohjeita varten!");
-                MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
-            }
         }
 
 
@@ -470,12 +479,6 @@ namespace AlienEscape
             // pelaaja2.Weapon.AttackSound = ?;
             pelaaja2.Weapon.IsVisible = false;
             pelaaja2.Weapon.Ammo.Value = 0;
-
-            if (2 < kenttaNro)
-            {
-                pelaaja2.Weapon.IsVisible = true;
-                pelaaja2.Weapon.Ammo.Value = 10000;
-            }
         }
 
         /// <summary>
@@ -704,7 +707,7 @@ namespace AlienEscape
         private void PeliLoppuu()
         {
         ClearAll();
-        ConfirmExit(LuoAlkuvalikko);
+        ConfirmExit(LuoAlkuvalikko); // TODO: muuta niin, että voi aloittaa kentän alusta
         NollaaLaskurit();
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
