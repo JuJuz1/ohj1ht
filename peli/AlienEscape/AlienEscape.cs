@@ -43,6 +43,9 @@ namespace AlienEscape
         private int HP2 = 3;
         private int HPvihu = 5;
         private int pisteet = 0;
+        private Label nayttoHP1;
+        private Label nayttoHP2;
+        private Label nayttoAarteet;
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
@@ -254,6 +257,9 @@ namespace AlienEscape
             if (IsFullScreen) IsFullScreen = false;
             else IsFullScreen = true;
             Camera.ZoomToLevel();
+            nayttoHP1.Position = new Vector(Screen.Left + 100, Screen.Top - 50);
+            nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
+            nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
         }
 
         /// <summary>
@@ -560,9 +566,8 @@ namespace AlienEscape
         {
             pelaaja1HP = new IntMeter(HP1);
             pelaaja1HP.MinValue = 0;
-            Label nayttoHP1 = new Label();
-            nayttoHP1.X = Screen.Left + 100;
-            nayttoHP1.Y = Screen.Top - 50;
+            nayttoHP1 = new Label();
+            nayttoHP1.Position = new Vector(Screen.Left + 100, Screen.Top - 50);
             nayttoHP1.TextColor = Color.White;
             nayttoHP1.Color = Color.Red;
             nayttoHP1.IntFormatString = " HP = {0:D1} ";
@@ -578,9 +583,8 @@ namespace AlienEscape
         {
             pelaaja2HP = new IntMeter(HP2);
             pelaaja2HP.MinValue = 0;
-            Label nayttoHP2 = new Label();
-            nayttoHP2.X = Screen.Left + 200;
-            nayttoHP2.Y = Screen.Top - 50;
+            nayttoHP2 = new Label();
+            nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
             nayttoHP2.TextColor = Color.White;
             nayttoHP2.Color = Color.Blue;
             nayttoHP2.IntFormatString = " HP = {0:D1} ";
@@ -595,9 +599,8 @@ namespace AlienEscape
         {
             aarteet = new IntMeter(Pisteet);
             aarteet.MaxValue = 5;
-            Label nayttoAarteet = new Label();
-            nayttoAarteet.X = Screen.Left + 320;
-            nayttoAarteet.Y = Screen.Top - 50;
+            nayttoAarteet = new Label();
+            nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
             nayttoAarteet.TextColor = Color.Black;
             nayttoAarteet.Color = Color.Gold;
             nayttoAarteet.IntFormatString = " Aarteet = {0:D1} ";
@@ -684,7 +687,7 @@ namespace AlienEscape
         /// <param name="o1">ensimmäinen olio</param>
         /// <param name="o2">toinen olio</param>
         /// <returns>etäisyys</returns>
-        private double Etaisyys(GameObject o1, GameObject o2)
+        private static double Etaisyys(GameObject o1, GameObject o2)
         {
             return Math.Sqrt((o1.X - o2.X) * (o1.X - o2.X) + (o1.Y - o2.Y) * (o1.Y - o2.Y)); // c = sqrt(a^2 + b^2)
         }
