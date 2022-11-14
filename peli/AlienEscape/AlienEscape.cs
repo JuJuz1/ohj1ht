@@ -16,43 +16,43 @@ namespace AlienEscape
         /// <summary>
         /// Esitellään oliot, jotka tarvitaan attribuutteina
         /// </summary>
-        private static PlatformCharacter pelaaja1;
-        private static PlatformCharacter pelaaja2;
-        private static PhysicsObject ovi;
-        private static PhysicsObject aarre;
-        private static GameObject ovenPainike;
-        private static GameObject hissinPainike;
-        private static PhysicsObject hissi;
-        private static PhysicsObject exit;
+        private PlatformCharacter pelaaja1;
+        private PlatformCharacter pelaaja2;
+        private PhysicsObject ovi;
+        private PhysicsObject aarre;
+        private GameObject ovenPainike;
+        private GameObject hissinPainike;
+        private PhysicsObject hissi;
+        private PhysicsObject exit;
 
         /// <summary>
         /// Esitellään laskurit
         /// </summary>
-        private static IntMeter pelaaja1HP;
-        private static IntMeter pelaaja2HP;
-        private static IntMeter aarteet;
+        private IntMeter pelaaja1HP;
+        private IntMeter pelaaja2HP;
+        private IntMeter aarteet;
 
         /// <summary>
         /// Määritellään pelikentän luomiseen ja pelaamiseen tarvittavat lvuut/muuttujat
         /// </summary>
-        private static readonly int tileWidth = 80;
-        private static readonly int tileHeight = 80;
-        private static readonly int maxKenttaNro = 5;
-        private static int kenttaNro = 1;
-        private static int HP1 = 3;
-        private static int HP2 = 3;
-        private static int HPvihu = 5;
-        private static int pisteet = 0;
+        private readonly int tileWidth = 80;
+        private readonly int tileHeight = 80;
+        private readonly int maxKenttaNro = 5;
+        private int kenttaNro = 1;
+        private int HP1 = 3;
+        private int HP2 = 3;
+        private int HPvihu = 5;
+        private int pisteet = 0;
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
         /// </summary>
-        private static readonly Image luolanKuva = LoadImage("luola");
-        private static readonly Image seinanKuva = LoadImage("seina1");
-        private static readonly Image seinanKuva2 = LoadImage("seina2");
-        private static readonly Image piikinKuva = LoadImage("piikki");
-        private static readonly Image pelaaja1Kuva = LoadImage("pelaaja1");
-        private static readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
+        private readonly Image luolanKuva = LoadImage("luola");
+        private readonly Image seinanKuva = LoadImage("seina1");
+        private readonly Image seinanKuva2 = LoadImage("seina2");
+        private readonly Image piikinKuva = LoadImage("piikki");
+        private readonly Image pelaaja1Kuva = LoadImage("pelaaja1");
+        private readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -146,8 +146,8 @@ namespace AlienEscape
         private void VahvistaAlkuvalikkoon()
         {
             YesNoWindow vahvistusIkkuna = new YesNoWindow("Menetät edistymisesi pelissä, jos palaat takaisin alkuvalikkoon.\nHaluatko varmasti palata takaisin alkuvalikkoon?");
-            vahvistusIkkuna.Yes += LuoAlkuvalikko;
-            Add(vahvistusIkkuna);
+            vahvistusIkkuna.Yes += delegate { NollaaLaskurit(); LuoAlkuvalikko(); };
+                Add(vahvistusIkkuna);
         }
 
         /// <summary>
@@ -200,14 +200,23 @@ namespace AlienEscape
             LuoOhjaimet();
         }
 
+        /// <summary>
+        /// Nollataan kaikki laskurit oletusarvoihin
+        /// </summary>
+        private void NollaaLaskurit()
+        {
+            HP1 = 3;
+            HP2 = 3;
+            pisteet = 0;
+        }
+
         private void LuoOhjaimet()
         {
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoPelivalikko, "Avaa valikko");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
             Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
-            Keyboard.Listen(Key.Y, ButtonState.Pressed, LuoKentta, "Seuraava kenttä", ++kenttaNro);
+            Keyboard.Listen(Key.Y, ButtonState.Pressed, LuoKentta, "Seuraava kenttä", kenttaNro + 1);
 
-            // TODO: Ohjaimien ryhmittely?
             Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
             Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
@@ -696,6 +705,7 @@ namespace AlienEscape
         {
         ClearAll();
         ConfirmExit(LuoAlkuvalikko);
+        NollaaLaskurit();
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
     }
