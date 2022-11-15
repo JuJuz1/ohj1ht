@@ -54,8 +54,9 @@ namespace AlienEscape
         private readonly Image seinanKuva = LoadImage("seina1");
         private readonly Image seinanKuva2 = LoadImage("seina2");
         private readonly Image piikinKuva = LoadImage("piikki");
-        private readonly Image pelaaja1Kuva = LoadImage("pelaaja1");
+        private readonly Image pelaaja1Kuva = LoadImage("pelaaja1_1");
         private readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
+        private readonly Image[] pelaaja1Kavely = LoadImages("pelaaja1_2", "pelaaja1_3", "pelaaja1_4");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -452,16 +453,10 @@ namespace AlienEscape
         private void LuoPelaaja1(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
             pelaaja1 = new Pelaaja(peli, pelaaja1Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
-            pelaaja1.Weapon = new AssaultRifle(30, 15);
-            // pelaaja1.Weapon.Position = pelaaja1.Position; alunperin jo keskellä
-            pelaaja1.Weapon.AmmoIgnoresGravity = true;
-            pelaaja1.Weapon.CanHitOwner = false;
-            pelaaja1.Weapon.FireRate = 3;
-            pelaaja1.Weapon.Power.DefaultValue = 200;
-            pelaaja1.Weapon.ProjectileCollision = AmmusOsui;
-            // pelaaja1.Weapon.AttackSound = ?;
-            pelaaja1.Weapon.IsVisible = false;
-            pelaaja1.Weapon.Ammo.Value = 0;
+            pelaaja1.AnimWalk = new Animation(pelaaja1Kavely);
+            pelaaja1.AnimWalk.FPS = 10;
+            pelaaja1.AnimIdle = pelaaja1Kuva;
+            LisaaAse(pelaaja1);
         }
 
 
@@ -475,16 +470,24 @@ namespace AlienEscape
         private void LuoPelaaja2(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
             pelaaja2 = new Pelaaja(peli, pelaaja2Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
-            pelaaja2.Weapon = new AssaultRifle(30, 15);
-            // pelaaja2.Weapon.Position = pelaaja2.Position; alunperin jo keskellä
-            pelaaja2.Weapon.AmmoIgnoresGravity = true;
-            pelaaja2.Weapon.CanHitOwner = false;
-            pelaaja2.Weapon.FireRate = 3;
-            pelaaja2.Weapon.Power.DefaultValue = 200;
-            pelaaja2.Weapon.ProjectileCollision = AmmusOsui;
-            // pelaaja2.Weapon.AttackSound = ?;
-            pelaaja2.Weapon.IsVisible = false;
-            pelaaja2.Weapon.Ammo.Value = 0;
+            LisaaAse(pelaaja2);
+        }
+
+        /// <summary>
+        /// Lisää pelaajalle laseraseen
+        /// </summary>
+        /// <param name="pelaaja">Pelaaja, jolle ase lisätään</param>
+        private void LisaaAse(PlatformCharacter pelaaja)
+        {
+            pelaaja.Weapon = new LaserGun(30, 15);
+            pelaaja.Weapon.AmmoIgnoresGravity = true;
+            pelaaja.Weapon.CanHitOwner = false;
+            pelaaja.Weapon.FireRate = 3;
+            pelaaja.Weapon.Power.SetValue(200);
+            pelaaja.Weapon.Power.DefaultValue = 200; // Nollaa DefaulValueen vasta ekan kerran jälkeen
+            pelaaja.Weapon.ProjectileCollision = AmmusOsui;
+            pelaaja.Weapon.IsVisible = false;
+            pelaaja.Weapon.Ammo.Value = 0;
         }
 
         /// <summary>
