@@ -55,8 +55,9 @@ namespace AlienEscape
         private readonly Image seinanKuva2 = LoadImage("seina2");
         private readonly Image piikinKuva = LoadImage("piikki");
         private readonly Image pelaaja1Kuva = LoadImage("pelaaja1_1");
+        private readonly Image pelaaja1Hyppy = LoadImage("pelaaja1_hyppy");
+        private readonly Image[] pelaaja1Kavely = LoadImages("pelaaja1_2", "pelaaja1_4", "pelaaja1_3");
         private readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
-        private readonly Image[] pelaaja1Kavely = LoadImages("pelaaja1_2", "pelaaja1_3", "pelaaja1_4");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -456,6 +457,8 @@ namespace AlienEscape
             pelaaja1.AnimWalk = new Animation(pelaaja1Kavely);
             pelaaja1.AnimWalk.FPS = 10;
             pelaaja1.AnimIdle = pelaaja1Kuva;
+            pelaaja1.AnimJump = pelaaja1Hyppy;
+            pelaaja1.AnimFall = pelaaja1Kuva;
             LisaaAse(pelaaja1);
         }
 
