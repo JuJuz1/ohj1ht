@@ -58,6 +58,8 @@ namespace AlienEscape
         private readonly Image pelaaja1Hyppy = LoadImage("pelaaja1_hyppy");
         private readonly Image[] pelaaja1Kavely = LoadImages("pelaaja1_2", "pelaaja1_4", "pelaaja1_3");
         private readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
+        private readonly Image pelaaja2Hyppy = LoadImage("pelaaja2_hyppy");
+        private readonly Image[] pelaaja2Kavely = LoadImages("pelaaja2_2", "pelaaja2_4", "pelaaja2_3");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -473,6 +475,11 @@ namespace AlienEscape
         private void LuoPelaaja2(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
         {
             pelaaja2 = new Pelaaja(peli, pelaaja2Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2.AnimWalk = new Animation(pelaaja2Kavely);
+            pelaaja2.AnimWalk.FPS = 10;
+            pelaaja2.AnimIdle = pelaaja2Kuva;
+            pelaaja2.AnimJump = pelaaja2Hyppy;
+            pelaaja2.AnimFall = pelaaja2Kuva;
             LisaaAse(pelaaja2);
         }
 
