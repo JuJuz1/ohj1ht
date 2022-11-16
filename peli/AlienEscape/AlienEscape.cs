@@ -11,6 +11,11 @@ using System.Transactions;
 
 namespace AlienEscape
 {
+    /// <summary>
+    /// Luodaan pelin luokka
+    /// </summary>
+    /// @author Juuso Piippo & Elias Lehtinen
+    /// @version 16.11.2022
     public class AlienEscape : PhysicsGame
     {
         /// <summary>
@@ -629,6 +634,19 @@ namespace AlienEscape
             if (kenttaNro < 4) { vihollinen.Oscillate(Vector.UnitX, tileWidth * 0.75, RandomGen.NextDouble(0.6, 0.75)); }
             else { vihollinen.Oscillate(Vector.UnitX, tileWidth * 1.15, RandomGen.NextDouble(0.7, 0.85)); }
             Add(vihollinen);
+
+
+            /*
+            PlatformCharacter vihollinen = new PlatformCharacter(leveys * 0.7, korkeus * 0.7);
+            polku.Add(new Vector(vihollinen.X - tileWidth, paikka.Y));
+            polku.Add(new Vector(vihollinen.X, paikka.Y));
+            polku.Add(new Vector(paikka.X + tileWidth, paikka.Y));
+            PathFollowerBrain polkuaivot = new PathFollowerBrain();
+            polkuaivot.Path = polku;
+            polkuaivot.Loop = true;
+            polkuaivot.Speed = 100;
+            vihollinen.Brain = polkuaivot;
+            */
         }
 
 
@@ -849,8 +867,6 @@ namespace AlienEscape
                     AktivoiAseet();
                 }
             }
-            
-
         }
 
 
