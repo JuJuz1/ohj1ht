@@ -38,7 +38,7 @@ namespace AlienEscape
         /// </summary>
         private const int tileWidth = 80;
         private const int tileHeight = 80;
-        private const int maxKenttaNro = 6; // TODO: Muutetaan maxKenttaNro sitä mukaa, kun lisätään kenttiä
+        private const int maxKenttaNro = 5; // TODO: Muutetaan maxKenttaNro sitä mukaa, kun lisätään kenttiä
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
@@ -55,18 +55,44 @@ namespace AlienEscape
         private readonly Image seinanKuva = LoadImage("seina1");
         private readonly Image seinanKuva2 = LoadImage("seina2");
         private readonly Image piikinKuva = LoadImage("piikki");
+        private readonly Image ovenKuva = LoadImage("ovi");
+        private readonly Image napinKuvaVih = LoadImage("nappi_vihrea");
+        private readonly Image napinKuvaPun = LoadImage("nappi_punainen");
+        private readonly Image vipuYlosKuva = LoadImage("vipu_ylos");
+        private readonly Image vipuAlasKuva = LoadImage("vipu_alas");
+        private readonly Image laserseinanKuva = LoadImage("laserpalikka");
+        private readonly Image hissikuilunKuva = LoadImage("hissikuilu");
+        private readonly Image hissiPaikallaanKuva = LoadImage("hissi_paikallaan");
+        private readonly Image hissiLiikkeessaKuva = LoadImage("hissi_liikkeessa");
+        private readonly Image aarteenKuva = LoadImage("aarre");
+        private readonly Image[] oviLiikkuuKuvat = LoadImages("ovi2", "ovi3", "ovi4", "ovi5", "ovi6", "ovi7", "ovi8", "ovi9", "ovi10");
         private readonly Image pelaaja1Kuva = LoadImage("pelaaja1_1");
         private readonly Image pelaaja1Hyppy = LoadImage("pelaaja1_hyppy");
         private readonly Image[] pelaaja1Kavely = LoadImages("pelaaja1_2", "pelaaja1_4", "pelaaja1_3");
-        private readonly Image pelaaja2Kuva = LoadImage("pelaaja2");
+        private readonly Image pelaaja1KuvaAse = LoadImage("pelaaja1_1_A");
+        private readonly Image pelaaja1HyppyAse = LoadImage("pelaaja1_hyppy_A");
+        private readonly Image[] pelaaja1KavelyAse = LoadImages("pelaaja1_2_A", "pelaaja1_4_A", "pelaaja1_3_A");
+        private readonly Image pelaaja2Kuva = LoadImage("pelaaja2_1");
         private readonly Image pelaaja2Hyppy = LoadImage("pelaaja2_hyppy");
         private readonly Image[] pelaaja2Kavely = LoadImages("pelaaja2_2", "pelaaja2_4", "pelaaja2_3");
+        private readonly Image pelaaja2KuvaAse = LoadImage("pelaaja2_1_A");
+        private readonly Image pelaaja2HyppyAse = LoadImage("pelaaja2_hyppy_A");
+        private readonly Image[] pelaaja2KavelyAse = LoadImages("pelaaja2_2_A", "pelaaja2_4_A", "pelaaja2_3_A");
+        private readonly Image alienKuva = LoadImage("alien1");
+        private readonly Image[] alienKavely = LoadImages("alien3", "alien1", "alien2", "alien1");
 
         /// <summary>
         /// Ladataan pelissä tarvittavat äänet
         /// </summary>
-        private readonly SoundEffect aktivoiAse = LoadSoundEffect("aktivoiAse");
-        private readonly SoundEffect osui = LoadSoundEffect("osui");
+        private readonly SoundEffect aktivoiAseAani = LoadSoundEffect("aktivoiAse");
+        private readonly SoundEffect osuiAani = LoadSoundEffect("osui");
+        private readonly SoundEffect[] sattuiAanet = LoadSoundEffects("aiai", "aiai2", "auts");
+        private readonly SoundEffect aarreAani = LoadSoundEffect("aarre1");
+        private readonly SoundEffect[] hyppyAanet = LoadSoundEffects("hyppy1", "hyppy2", "hyppy3", "hyppy4");
+        private readonly SoundEffect nappiAani = LoadSoundEffect("nappi1");
+        private readonly SoundEffect oviAani = LoadSoundEffect("ovi");
+        private readonly SoundEffect vipuAani = LoadSoundEffect("vipu");
+        private readonly SoundEffect kavelyAani = LoadSoundEffect("kavely");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -92,6 +118,8 @@ namespace AlienEscape
             alkuvalikko.AddItemHandler(0, AloitaPeli);
             alkuvalikko.AddItemHandler(1, LuoKenttavalikko);
             alkuvalikko.AddItemHandler(2, ConfirmExit, LuoAlkuvalikko);
+
+            MediaPlayer.Stop();
         }
 
 
@@ -134,6 +162,9 @@ namespace AlienEscape
             else KenttaTiedostosta("kentta" + kenttaNro);
 
             LuoMuut(); // Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
+
+            MediaPlayer.Play("taustamusiikki1"); // Käynnistetään taustamusiikki
+            MediaPlayer.IsRepeating = true;
         }
 
         // TODO: Lisää kenttiä ja lopetus, muista muuttaa maxKenttaNro arvoa, kun lisätään kenttiä
@@ -213,9 +244,9 @@ namespace AlienEscape
             Camera.ZoomToLevel();
             Level.CreateBorders();
             
-            string[] pelinTagit = { "piikki", "laser", "vihu", "putoava", "easter_egg" };
+            string[] vahingoittavat = { "piikki", "laser", "vihu", "putoava" };
 
-            foreach (string tag in pelinTagit)
+            foreach (string tag in vahingoittavat)
             {
                 AddCollisionHandler(pelaaja1, tag, Pelaaja1Vahingoittui);
                 AddCollisionHandler(pelaaja2, tag, Pelaaja2Vahingoittui);
@@ -258,17 +289,25 @@ namespace AlienEscape
         /// </summary>
         private void AktivoiAseet()
         {
-            pelaaja1.Weapon.IsVisible = true;
             pelaaja1.Weapon.Ammo.Value = 10000;
-            pelaaja2.Weapon.IsVisible = true;
+            pelaaja1.AnimIdle = pelaaja1KuvaAse;
+            pelaaja1.AnimWalk = new Animation(pelaaja1KavelyAse);
+            pelaaja1.AnimJump = pelaaja1HyppyAse;
+            pelaaja1.AnimFall = pelaaja1KuvaAse;
+            pelaaja1.AnimWalk.FPS = 10;
             pelaaja2.Weapon.Ammo.Value = 10000;
+            pelaaja2.AnimIdle = pelaaja2KuvaAse;
+            pelaaja2.AnimWalk = new Animation(pelaaja2KavelyAse);
+            pelaaja2.AnimJump = pelaaja2HyppyAse;
+            pelaaja2.AnimFall = pelaaja2KuvaAse;
+            pelaaja2.AnimWalk.FPS = 10;
             if (kenttaNro == 4)
             {
                 MessageDisplay.TextColor = Color.Black;
                 MessageDisplay.Font = new Font(30);
                 MessageDisplay.Add("Käytössänne on nyt aseet! Paina F1 ohjeita varten!");
                 MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
-                aktivoiAse.Play();
+                aktivoiAseAani.Play();
             }
         }
 
@@ -291,16 +330,17 @@ namespace AlienEscape
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoPelivalikko, "Avaa valikko");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
             Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
+            Keyboard.Listen(Key.M, ButtonState.Pressed, HiljennaMusiikki, "Hiljennä musiikki");
             Keyboard.Listen(Key.Y, ButtonState.Pressed, LuoKentta, "Seuraava kenttä", kenttaNro + 1);
 
-            Keyboard.Listen(Key.A, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele vasemmalle", -180.0);
-            Keyboard.Listen(Key.D, ButtonState.Down, pelaaja1.Walk, "Pelaaja 1: Kävele oikealle", 180.0);
+            Keyboard.Listen(Key.A, ButtonState.Down, Kavele, "Pelaaja 1: Kävele vasemmalle", pelaaja1, -180.0);
+            Keyboard.Listen(Key.D, ButtonState.Down, Kavele, "Pelaaja 1: Kävele oikealle", pelaaja1, 180.0);
             Keyboard.Listen(Key.W, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 1: Hyppää", pelaaja1, 600.0);
             Keyboard.Listen(Key.S, ButtonState.Pressed, KaytaObjektia, "Pelaaja 1: Paina nappia / poimi esine / käytä portaali", pelaaja1);
             Keyboard.Listen(Key.F, ButtonState.Down, AmmuAseella, "Pelaaja 1: Ammu", pelaaja1);
 
-            Keyboard.Listen(Key.Left, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele vasemmalle", -180.0);
-            Keyboard.Listen(Key.Right, ButtonState.Down, pelaaja2.Walk, "Pelaaja 2: Kävele oikealle", 180.0);
+            Keyboard.Listen(Key.Left, ButtonState.Down, Kavele, "Pelaaja 2: Kävele vasemmalle", pelaaja2, -180.0);
+            Keyboard.Listen(Key.Right, ButtonState.Down, Kavele, "Pelaaja 2: Kävele oikealle", pelaaja2, 180.0);
             Keyboard.Listen(Key.Up, ButtonState.Pressed, PelaajaHyppaa, "Pelaaja 2: Hyppää", pelaaja2, 600.0);
             Keyboard.Listen(Key.Down, ButtonState.Pressed, KaytaObjektia, "Pelaaja 2: Paina nappia / poimi esine / käytä portaali", pelaaja2);
             Keyboard.Listen(Key.RightShift, ButtonState.Down, AmmuAseella, "Pelaaja 2: Ammu", pelaaja2);
@@ -372,10 +412,10 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoLaser(Vector paikka, double leveys, double korkeus)
         {
-            PhysicsObject osoitin = PhysicsObject.CreateStaticObject(leveys * 0.375, korkeus);
+            PhysicsObject osoitin = PhysicsObject.CreateStaticObject(leveys, korkeus);
             osoitin.X = paikka.X;
             osoitin.Y = paikka.Y;
-            osoitin.Color = Color.Gray;
+            osoitin.Image = laserseinanKuva;
             Add(osoitin);
 
             PhysicsObject laser = PhysicsObject.CreateStaticObject(leveys * 0.05, korkeus * 3);
@@ -413,11 +453,10 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoAarre(Vector paikka, double leveys, double korkeus)
         {
-            aarre = PhysicsObject.CreateStaticObject(leveys, korkeus, Shape.Star);
+            aarre = PhysicsObject.CreateStaticObject(leveys, korkeus);
             aarre.Position = paikka;
             aarre.IgnoresCollisionResponse = true;
-            // TODO: aarre.Image = ?;
-            aarre.Color = Color.Gold;
+            aarre.Image = aarteenKuva;
             Add(aarre);
         }
 
@@ -431,7 +470,7 @@ namespace AlienEscape
         private void LuoOvi(Vector paikka, double leveys, double korkeus)
         {
             ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
-            // TODO: ovi.Image = ovenKuva;
+            ovi.Image = ovenKuva;
             ovi.Position = paikka;
             ovi.Shape = Shape.Rectangle;
             ovi.Color = Color.Brown;
@@ -448,7 +487,7 @@ namespace AlienEscape
         private void LuoOvenPainike(Vector paikka, double leveys, double korkeus)
         {
             ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
-            // TODO: ovenPainike.Image = painikkeenKuva;
+            ovenPainike.Image = napinKuvaPun;
             ovenPainike.Position = paikka;
             ovenPainike.Shape = Shape.Rectangle;
             ovenPainike.Color = Color.Red;
@@ -464,8 +503,8 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoHissinPainike(Vector paikka, double leveys, double korkeus)
         {
-            hissinPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
-            // TODO: hissinPainike.Image = jotain;
+            hissinPainike = new GameObject(leveys * 0.2, korkeus * 0.6);
+            hissinPainike.Image = vipuAlasKuva;
             hissinPainike.Position = paikka;
             hissinPainike.Shape = Shape.Rectangle;
             hissinPainike.Color = Color.Red;
@@ -484,6 +523,7 @@ namespace AlienEscape
             GameObject hissikuilu = new GameObject(leveys * 0.5, korkeus * 2);
             hissikuilu.X = paikka.X - leveys * 0.5;
             hissikuilu.Y = paikka.Y + korkeus * 0.5;
+            hissikuilu.Image = hissikuilunKuva;
             hissikuilu.Shape = Shape.Rectangle;
             hissikuilu.Color = Color.AshGray;
             Add(hissikuilu);
@@ -492,6 +532,7 @@ namespace AlienEscape
             hissi = new PhysicsObject(leveys * 1.99, korkeus * 0.2); // Ei voi olla static jos haluaa liikuttaa
             hissi.X = paikka.X - leveys * 0.5;
             hissi.Y = paikka.Y - korkeus * 0.6;
+            hissi.Image = hissiPaikallaanKuva;
             hissi.Shape = Shape.Rectangle;
             hissi.Color = Color.DarkAzure;
             hissi.CanRotate = false;
@@ -571,10 +612,11 @@ namespace AlienEscape
             PhysicsObject vihollinen = new PhysicsObject(leveys * 0.7, korkeus * 0.7);
             vihollinen.Tag = "vihu";
             vihollinen.Position = paikka;
+            vihollinen.Y -= 12; // Vihujen jalat koskettavat maata
             vihollinen.IgnoresGravity = true;
             vihollinen.IgnoresCollisionResponse = true;
-            // vihollinen.Image = ?;
-            // vihollinen.Image.Scaling = ImageScaling.Nearest;
+            vihollinen.Animation = new Animation(alienKavely);
+            vihollinen.Image.Scaling = ImageScaling.Nearest;
             if (kenttaNro < 4) { vihollinen.Oscillate(Vector.UnitX, tileWidth * 0.75, RandomGen.NextDouble(0.6, 0.75)); }
             else { vihollinen.Oscillate(Vector.UnitX, tileWidth * 1.15, RandomGen.NextDouble(0.7, 0.85)); }
             Add(vihollinen);
@@ -608,7 +650,7 @@ namespace AlienEscape
         /// <param name="kohde"></param>
         private void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
         {
-            osui.Play();
+            osuiAani.Play();
 
             ammus.Destroy();
 
@@ -716,8 +758,21 @@ namespace AlienEscape
         /// <param name="hyppaysnopeus">Nopeus, jolla pelaaja hyppää</param>
         private void PelaajaHyppaa(PlatformCharacter pelaaja, double hyppaysnopeus)
         {
-            pelaaja.Jump(hyppaysnopeus); // Täytyi tehdä oma aliohjelma, koska ohjainten luonti valitti siitä, että PlatformCharacter.Jump() palauttaa arvon,
-                                         // jolloin sitä ei voinut suoraan kutsua suoraan W-näppäintä painettaessa
+            pelaaja.Jump(hyppaysnopeus);
+            SoundEffect hyppyAani = RandomGen.SelectOne(hyppyAanet);
+            hyppyAani.Play();
+        }
+
+        
+        /// <summary>
+        /// Olio kävelee annetulla nopeudella vaakasuunnassa
+        /// </summary>
+        /// <param name="olio">Olio, joka kävelee</param>
+        /// <param name="v">Kävelyn nopeus, kävelee oikealle, jos positiivinen ja vasemmalle, jos negatiivinen</param>
+        private void Kavele(PlatformCharacter olio, double v)
+        {
+            olio.Walk(v);
+            if (!kavelyAani.IsPlaying) kavelyAani.Play();
         }
 
 
@@ -727,60 +782,52 @@ namespace AlienEscape
         /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
-            /*
-            if (Math.Abs(pelaaja.X - ovenPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - ovenPainike.Y) < tileHeight * 0.3) // Avataan ovi
-            */
             if (Etaisyys(pelaaja, ovenPainike) < tileWidth * 0.3)
             {
                 ovenPainike.Color = Color.Green;
-                // TODO: lisää oven avautumiselle ääni
+                ovenPainike.Image = napinKuvaVih;
+                nappiAani.Play();
+                oviAani.Play();
                 ovi.Destroy();
             }
-            /*
-            if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "alhaalla") // Hissiä nostetaan
-            */
+
             if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
             {
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
                 hissinPainike.Color = Color.Purple;
+                hissinPainike.Image = vipuYlosKuva;
+                hissi.Image = hissiLiikkeessaKuva;
                 hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; });
+                Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
             }
-            /*
-            else if (Math.Abs(pelaaja.X - hissinPainike.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - hissinPainike.Y) < tileHeight * 0.3 && hissi.Tag.ToString() == "ylhaalla") // Hissiä nostetaan
-            */
+
             else if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
             {
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
                 hissinPainike.Color = Color.Red;
+                hissinPainike.Image = vipuAlasKuva;
+                hissi.Image = hissiLiikkeessaKuva;
                 hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; });
+                Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
             }
 
-            /*
-            if (Math.Abs(pelaaja.X - aarre.X) < tileWidth * 0.3 && Math.Abs(pelaaja.Y - aarre.Y) < tileHeight * 0.3) // Poimitaan aarre
-            */
             if (Etaisyys(pelaaja, aarre) < tileWidth * 0.5)
             {
                 aarteet.Value += 1;
                 pisteet++;
-                // TODO: äänet
+                aarreAani.Play();
                 aarre.Destroy();
                 aarre.X = Screen.Left;
                 aarre.Y = Screen.Top;
             }
 
-            /*
-            if (Math.Abs(pelaaja1.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja1.Y - exit.Y) < tileHeight * 0.5
-            && Math.Abs(pelaaja2.X - exit.X) < tileWidth * 0.5 && Math.Abs(pelaaja2.Y - exit.Y) < tileHeight * 0.5) // Käytetään portaali
-            */
             if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
             {
                kenttaNro++;
                LuoKentta(kenttaNro);
             }
 
-            if (kenttaNro == 4) // Kaatuu jos ei ole
+            if (kenttaNro == 4) // Kaatuu jos ei ole, TODO: tutki toimiiko, jos tarkistaa if (aselaatikko != null)
             {
                 if ((Etaisyys(pelaaja, aselaatikko) < tileWidth * 0.5))
                 {
@@ -814,18 +861,16 @@ namespace AlienEscape
         /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
         private void Pelaaja1Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
         {
-            osui.Play();
+            SoundEffect sattui = RandomGen.SelectOne(sattuiAanet);
+            sattui.Play();
 
             pelaaja1HP.Value -= 1;
             HP1--;
 
-            if (kohde.Tag.ToString() == "putoava")
-            {
-                kohde.Destroy();
-            }
+            if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            if (kohde.Tag.ToString() == "laser") osuiAani.Play();
 
             if (pelaaja1HP <= 0) PeliLoppuu();
-
         }
 
 
@@ -836,15 +881,15 @@ namespace AlienEscape
         /// <param name="kohde">Olio, johon pelaaja törmäsi</param>
         private void Pelaaja2Vahingoittui(PhysicsObject pelaaja, PhysicsObject kohde)
         {
-            osui.Play();
-
-            if (kohde.Tag.ToString() == "putoava")
-            {
-                kohde.Destroy();
-            }
+            SoundEffect sattui = RandomGen.SelectOne(sattuiAanet);
+            sattui.Play();
 
             pelaaja2HP.Value -= 1;
             HP2--;
+
+            if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            if (kohde.Tag.ToString() == "laser") osuiAani.Play();
+
             if (pelaaja2HP <= 0) PeliLoppuu();
         }
 
@@ -861,6 +906,16 @@ namespace AlienEscape
 
 
         /// <summary>
+        /// Hiljentaa pelin taustamusiikin tai poistaa hiljennyksen, jos musiikki on valmiiksi hiljennetty
+        /// </summary>
+        private void HiljennaMusiikki()
+        {
+            if (MediaPlayer.IsMuted) MediaPlayer.IsMuted = false;
+            else MediaPlayer.IsMuted = true;
+        }
+
+
+        /// <summary>
         /// Peli loppuu
         /// </summary>
         private void PeliLoppuu()
@@ -868,6 +923,7 @@ namespace AlienEscape
         ClearAll();
         ConfirmExit(LuoAlkuvalikko); // TODO: muuta niin, että voi aloittaa kentän alusta
         NollaaLaskurit();
+        MediaPlayer.Stop();
         // TODO: äänet, tekstiä, aloita alusta-nappi yms.
         }
     }
@@ -879,7 +935,7 @@ namespace AlienEscape
             this.Position = paikka;
             this.Image = kuva;
             this.Image.Scaling = ImageScaling.Nearest;
-            peli.Add(this);
+            peli.Add(this, 2);
         }
     }
 }
