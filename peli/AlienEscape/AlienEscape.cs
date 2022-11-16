@@ -18,10 +18,10 @@ namespace AlienEscape
         /// </summary>
         private PlatformCharacter pelaaja1;
         private PlatformCharacter pelaaja2;
-        private PhysicsObject ovi;
-        private PhysicsObject aarre;
-        private GameObject ovenPainike;
-        private GameObject hissinPainike;
+        private List<PhysicsObject> ovetLista = new List<PhysicsObject>();
+        private List<PhysicsObject> aarteetLista = new List<PhysicsObject>();
+        private List<GameObject> painikkeetLista = new List<GameObject>();
+        private GameObject vipu;
         private PhysicsObject hissi;
         private PhysicsObject exit;
         private PhysicsObject aselaatikko;
@@ -112,6 +112,7 @@ namespace AlienEscape
         {
             ClearAll();
 
+
             MultiSelectWindow alkuvalikko = new MultiSelectWindow("Alkuvalikko", "Aloita peli", "Valitse kenttä", "Lopeta");
             Add(alkuvalikko);
 
@@ -157,6 +158,10 @@ namespace AlienEscape
         {
             kenttaNro = nro;
             ClearAll();
+            // TODO: tähän kaikki oliolistat
+            ovetLista.Clear();
+            painikkeetLista.Clear();
+            aarteetLista.Clear();
 
             if (kenttaNro > maxKenttaNro) PeliLoppuu();
             else KenttaTiedostosta("kentta" + kenttaNro);
@@ -220,7 +225,7 @@ namespace AlienEscape
             kentta.SetTileMethod('T', LuoAarre);
             kentta.SetTileMethod('D', LuoOvi);
             kentta.SetTileMethod('B', LuoOvenPainike);
-            kentta.SetTileMethod('b', LuoHissinPainike);
+            kentta.SetTileMethod('b', LuoVipu);
             kentta.SetTileMethod('H', LuoHissi);
             kentta.SetTileMethod('1', LuoPelaaja1, this);
             kentta.SetTileMethod('2', LuoPelaaja2, this);
@@ -260,6 +265,7 @@ namespace AlienEscape
             if (kenttaNro == 5)
             {
                 PudotaPalikoita();
+                AktivoiAseet();
             }
         }
 
@@ -453,10 +459,11 @@ namespace AlienEscape
         /// <param name="korkeus"></param>
         private void LuoAarre(Vector paikka, double leveys, double korkeus)
         {
-            aarre = PhysicsObject.CreateStaticObject(leveys, korkeus);
+            PhysicsObject aarre = PhysicsObject.CreateStaticObject(leveys, korkeus);
             aarre.Position = paikka;
             aarre.IgnoresCollisionResponse = true;
             aarre.Image = aarteenKuva;
+            aarteetLista.Add(aarre);
             Add(aarre);
         }
 
@@ -469,11 +476,13 @@ namespace AlienEscape
         /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoOvi(Vector paikka, double leveys, double korkeus)
         {
-            ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
+            PhysicsObject ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
             ovi.Image = ovenKuva;
             ovi.Position = paikka;
             ovi.Shape = Shape.Rectangle;
             ovi.Color = Color.Brown;
+            ovi.Tag = "ovi";
+            ovetLista.Add(ovi);
             Add(ovi);
         }
 
@@ -486,29 +495,30 @@ namespace AlienEscape
         /// <param name="korkeus">1 ruudun korkeus</param>
         private void LuoOvenPainike(Vector paikka, double leveys, double korkeus)
         {
-            ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
+            GameObject ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
             ovenPainike.Image = napinKuvaPun;
             ovenPainike.Position = paikka;
             ovenPainike.Shape = Shape.Rectangle;
             ovenPainike.Color = Color.Red;
+            painikkeetLista.Add(ovenPainike);
             Add(ovenPainike);
         }
         
 
         /// <summary>
-        /// Luodaan hissille painike
+        /// Luodaan hissille vipu
         /// </summary>
         /// <param name="paikka"></param>
         /// <param name="leveys"></param>
         /// <param name="korkeus"></param>
-        private void LuoHissinPainike(Vector paikka, double leveys, double korkeus)
+        private void LuoVipu(Vector paikka, double leveys, double korkeus) // hissinPainike -> vipu (nimi vaihdettu)
         {
-            hissinPainike = new GameObject(leveys * 0.2, korkeus * 0.6);
-            hissinPainike.Image = vipuAlasKuva;
-            hissinPainike.Position = paikka;
-            hissinPainike.Shape = Shape.Rectangle;
-            hissinPainike.Color = Color.Red;
-            Add(hissinPainike);
+            vipu = new GameObject(leveys * 0.2, korkeus * 0.6);
+            vipu.Image = vipuAlasKuva;
+            vipu.Position = paikka;
+            vipu.Shape = Shape.Rectangle;
+            vipu.Color = Color.Red;
+            Add(vipu);
         }
 
 
@@ -597,7 +607,6 @@ namespace AlienEscape
             pelaaja.Weapon.ProjectileCollision = AmmusOsui;
             pelaaja.Weapon.IsVisible = false;
             pelaaja.Weapon.Ammo.Value = 0;
-            if (kenttaNro > 4) AktivoiAseet();
         }
 
 
@@ -758,9 +767,8 @@ namespace AlienEscape
         /// <param name="hyppaysnopeus">Nopeus, jolla pelaaja hyppää</param>
         private void PelaajaHyppaa(PlatformCharacter pelaaja, double hyppaysnopeus)
         {
-            pelaaja.Jump(hyppaysnopeus);
             SoundEffect hyppyAani = RandomGen.SelectOne(hyppyAanet);
-            hyppyAani.Play();
+            if (pelaaja.Jump(hyppaysnopeus)) hyppyAani.Play();
         }
 
         
@@ -782,43 +790,47 @@ namespace AlienEscape
         /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
-            if (Etaisyys(pelaaja, ovenPainike) < tileWidth * 0.3)
+            GameObject lahinPainike = EtsiLahin(painikkeetLista, pelaaja);
+            if (Etaisyys(pelaaja, lahinPainike) < tileWidth * 0.3)
             {
-                ovenPainike.Color = Color.Green;
-                ovenPainike.Image = napinKuvaVih;
+                lahinPainike.Color = Color.Green;
                 nappiAani.Play();
-                oviAani.Play();
-                ovi.Destroy();
+                if (lahinPainike.Image == napinKuvaPun) oviAani.Play();
+                lahinPainike.Image = napinKuvaVih;
+                EtsiLahinP(ovetLista, pelaaja).Destroy();
             }
 
-            if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
+            if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
             {
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
-                hissinPainike.Color = Color.Purple;
-                hissinPainike.Image = vipuYlosKuva;
+                vipu.Color = Color.Purple;
+                vipu.Image = vipuYlosKuva;
+                vipuAani.Play();
                 hissi.Image = hissiLiikkeessaKuva;
                 hissi.Tag = "liikkeessa";
                 Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
             }
 
-            else if ((Etaisyys(pelaaja, hissinPainike) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
+            else if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
             {
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
-                hissinPainike.Color = Color.Red;
-                hissinPainike.Image = vipuAlasKuva;
+                vipu.Color = Color.Red;
+                vipu.Image = vipuAlasKuva;
+                vipuAani.Play();
                 hissi.Image = hissiLiikkeessaKuva;
                 hissi.Tag = "liikkeessa";
                 Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
             }
 
-            if (Etaisyys(pelaaja, aarre) < tileWidth * 0.5)
+            PhysicsObject lahinAarre = EtsiLahinP(aarteetLista, pelaaja);
+            if (Etaisyys(pelaaja, lahinAarre) < tileWidth * 0.5)
             {
                 aarteet.Value += 1;
                 pisteet++;
                 aarreAani.Play();
-                aarre.Destroy();
-                aarre.X = Screen.Left;
-                aarre.Y = Screen.Top;
+                lahinAarre.Destroy();
+                lahinAarre.X = Screen.Left;
+                lahinAarre.Y = Screen.Top;
             }
 
             if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
@@ -851,6 +863,52 @@ namespace AlienEscape
         private static double Etaisyys(GameObject o1, GameObject o2)
         {
             return Math.Sqrt((o1.X - o2.X) * (o1.X - o2.X) + (o1.Y - o2.Y) * (o1.Y - o2.Y)); // c = sqrt(a^2 + b^2)
+        }
+
+
+        /// <summary>
+        /// Etsii listasta oliota lähinnä pelialueella sijaitsevan olion
+        /// </summary>
+        /// <param name="lista">Lista olioita</param>
+        /// <param name="olio">Olio, josta etäisyydet mitataan</param>
+        /// <returns>Lähin olio</returns>
+        private static GameObject EtsiLahin(List<GameObject> lista, PhysicsObject olio)
+        {
+            GameObject lahin = new GameObject(0, 0);
+            double pieninEtaisyys = double.MaxValue;
+            for (int i = 0; i < lista.Count; i++)
+            {
+                double tamaEtaisyys = Etaisyys(olio, lista[i]);
+                if (tamaEtaisyys < pieninEtaisyys)
+                {
+                    pieninEtaisyys = tamaEtaisyys;
+                    lahin = lista[i];
+                }
+            }
+            return lahin;
+        }
+        
+
+        /// <summary>
+        /// Etsii listasta oliota lähinnä pelialueella sijaitsevan olion
+        /// </summary>
+        /// <param name="lista">Lista olioita</param>
+        /// <param name="olio">Olio, josta etäisyydet mitataan</param>
+        /// <returns>Lähin olio</returns>
+        private static PhysicsObject EtsiLahinP(List<PhysicsObject> lista, PhysicsObject olio)
+        {
+            PhysicsObject lahin = new PhysicsObject(0, 0);
+            double pieninEtaisyys = double.MaxValue;
+            for (int i = 0; i < lista.Count; i++)
+            {
+                double tamaEtaisyys = Etaisyys(olio, lista[i]);
+                if (tamaEtaisyys < pieninEtaisyys)
+                {
+                    pieninEtaisyys = tamaEtaisyys;
+                    lahin = lista[i];
+                }
+            }
+            return lahin;
         }
 
 
