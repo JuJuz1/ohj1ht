@@ -309,7 +309,7 @@ namespace AlienEscape
         {
             PhysicsObject putoavaPommi = new PhysicsObject(tileWidth * 0.3, tileHeight * 0.3, Shape.Circle);
             putoavaPommi.X = RandomGen.NextDouble(Screen.Left + tileWidth, Screen.Right - tileWidth);
-            putoavaPommi.Y = Screen.Top - tileHeight * 0.5;
+            putoavaPommi.Y = Screen.Top - tileHeight * 2;
             putoavaPommi.Tag = "putoava";
             putoavaPommi.LifetimeLeft = TimeSpan.FromSeconds(2.0);
             Add(putoavaPommi);
@@ -450,6 +450,7 @@ namespace AlienEscape
         private void LuoPalikka(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject palikka = PhysicsObject.CreateStaticObject(leveys, korkeus);
+            palikka.Tag = "perus";
             palikka.Position = paikka;
             palikka.Image = seinanKuva;
             palikka.Image.Scaling = ImageScaling.Nearest;
@@ -671,6 +672,7 @@ namespace AlienEscape
         private void LuoPelaaja1(Vector paikka, double leveys, double korkeus)
         {
             pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja1.Tag = "pelaaja1";
             pelaaja1.Position = paikka;
             pelaaja1.Image = pelaaja1Kuva;
             pelaaja1.Image.Scaling = ImageScaling.Nearest;
@@ -695,6 +697,7 @@ namespace AlienEscape
         private void LuoPelaaja2(Vector paikka, double leveys, double korkeus)
         {
             pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2.Tag = "pelaaja2";
             pelaaja2.Position = paikka;
             pelaaja2.Image = pelaaja2Kuva;
             pelaaja2.Image.Scaling = ImageScaling.Nearest;
