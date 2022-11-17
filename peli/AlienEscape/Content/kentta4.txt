@@ -1,11 +1,11 @@
 XXXXXXXXXXXXXXXXXXXX
 X       T          X
-XT*    XX E XX X   X
-XXXXX *     *  XX BX
-X   B XXXXXXXXXX  XX
+XT*    XX E X  X   X
+XXXXX  *    * XXX BX
+X     XXXXXXXXXX  XX
 X  XXXX   XVVX   XXX
 X  XXXV   X    bXXXX
-X H       X   XXXXXX
+X HB      X   XXXXXX
 XXXX H       ZZD L X
 X      DXXXXXXXXXXZX
 X 12  X   *  *   T X
