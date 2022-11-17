@@ -1,6 +1,7 @@
 using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
+using Jypeli.Effects;
 using Jypeli.Widgets;
 using Microsoft.Win32.SafeHandles;
 using System;
@@ -298,6 +299,7 @@ namespace AlienEscape
             ajastin1.Start();
         }
 
+
         /// <summary>
         /// Tekee rajahdyksen pommille
         /// </summary>
@@ -333,6 +335,7 @@ namespace AlienEscape
             }
         }
 
+
         /// <summary>
         /// Rajayttaa pommin (pelaajan koskettaessa) ((väliaikainen?))
         /// </summary>
@@ -344,7 +347,6 @@ namespace AlienEscape
             // rajahdys.Sound = rajahdysAani;
             Add(rajahdys);
         }
-
 
 
         /// <summary>
@@ -384,6 +386,7 @@ namespace AlienEscape
             HP2 = 3;
             pisteet = 0;
         }
+
 
         /// <summary>
         /// Luodaan peliin ohjaimet
@@ -438,6 +441,13 @@ namespace AlienEscape
             Add(palikka);
         }
 
+
+        /// <summary>
+        /// Luodaan läpikuljettava palikka
+        /// </summary>
+        /// <param name="paikka">Piste, johon palikka syntyy</param>
+        /// <param name="leveys">Palikan leveys</param>
+        /// <param name="korkeus">Palikan korkeus</param>
         private void LuoPalikka2(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject palikka2 = new PhysicsObject(leveys, korkeus);
@@ -461,6 +471,7 @@ namespace AlienEscape
         {
             PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys * 1.5, korkeus);
             piikki.Image = piikinKuva;
+            piikki.Image.Scaling = ImageScaling.Nearest;
             piikki.Position = paikka;
             piikki.Tag = "piikki";
             Add(piikki);
@@ -479,6 +490,7 @@ namespace AlienEscape
             osoitin.X = paikka.X;
             osoitin.Y = paikka.Y;
             osoitin.Image = laserseinanKuva;
+            osoitin.Image.Scaling = ImageScaling.Nearest;
             Add(osoitin);
 
             PhysicsObject laser = PhysicsObject.CreateStaticObject(leveys * 0.05, korkeus * 3);
@@ -495,7 +507,7 @@ namespace AlienEscape
             {
                 if (laser.Tag.ToString() == "laser") // CollisionHandler käsittelee pelaajan ja laserin välisen törmäyksen vaan, jos Tag = "laser".
                 {
-                    laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laser.Tag = ""; // Jos Tag = "laser", muutetaan näkymättömäksi, poistetaan törmäykset ja tyhjennetään tagi
+                    laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laser.Tag = "laserPois"; // Jos Tag = "laser", muutetaan näkymättömäksi, poistetaan törmäykset ja tagi "laserPois"
                 }
                 else
                 {
@@ -520,6 +532,8 @@ namespace AlienEscape
             aarre.Position = paikka;
             aarre.IgnoresCollisionResponse = true;
             aarre.Image = aarteenKuva;
+            aarre.Image.Scaling = ImageScaling.Nearest;
+            aarre.Tag = "aarre";
             aarteetLista.Add(aarre);
             Add(aarre);
         }
@@ -535,6 +549,7 @@ namespace AlienEscape
         {
             PhysicsObject ovi = PhysicsObject.CreateStaticObject(leveys * 0.6, korkeus);
             ovi.Image = ovenKuva;
+            ovi.Image.Scaling = ImageScaling.Nearest;
             ovi.Position = paikka;
             ovi.Shape = Shape.Rectangle;
             ovi.Color = Color.Brown;
@@ -554,6 +569,7 @@ namespace AlienEscape
         {
             GameObject ovenPainike = new GameObject(leveys * 0.2, korkeus * 0.2);
             ovenPainike.Image = napinKuvaPun;
+            ovenPainike.Image.Scaling = ImageScaling.Nearest;
             ovenPainike.Position = paikka;
             ovenPainike.Shape = Shape.Rectangle;
             ovenPainike.Color = Color.Red;
@@ -572,6 +588,7 @@ namespace AlienEscape
         {
             vipu = new GameObject(leveys * 0.2, korkeus * 0.6);
             vipu.Image = vipuAlasKuva;
+            vipu.Image.Scaling = ImageScaling.Nearest;
             vipu.Position = paikka;
             vipu.Shape = Shape.Rectangle;
             vipu.Color = Color.Red;
@@ -591,6 +608,7 @@ namespace AlienEscape
             hissikuilu.X = paikka.X - leveys * 0.5;
             hissikuilu.Y = paikka.Y + korkeus * 0.5;
             hissikuilu.Image = hissikuilunKuva;
+            hissikuilu.Image.Scaling = ImageScaling.Nearest;
             hissikuilu.Shape = Shape.Rectangle;
             hissikuilu.Color = Color.AshGray;
             Add(hissikuilu);
@@ -600,6 +618,7 @@ namespace AlienEscape
             hissi.X = paikka.X - leveys * 0.5;
             hissi.Y = paikka.Y - korkeus * 0.6;
             hissi.Image = hissiPaikallaanKuva;
+            hissi.Image.Scaling = ImageScaling.Nearest;
             hissi.Shape = Shape.Rectangle;
             hissi.Color = Color.DarkAzure;
             hissi.CanRotate = false;
@@ -741,30 +760,38 @@ namespace AlienEscape
         {
             osuiAani.Play();
 
-            ammus.Destroy();
+            var rajahdys = new Explosion(tileWidth * 0.05);
+            rajahdys.Position = ammus.Position;
+            Add(rajahdys);
 
-            // if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            if (kohde.Tag.ToString() == "laserPois" || kohde.Tag.ToString() == "aarre") return;
+
+            ammus.Destroy();
 
             if (kohde.Tag.ToString() == "vihu5")
             {
                 kohde.Tag = "vihu4";
                 return;
             }
-                if (kohde.Tag.ToString() == "vihu4")
-                {
-                    kohde.Tag = "vihu3";
-                    return;
-                }
-                    if (kohde.Tag.ToString() == "vihu3")
-                    {
-                        kohde.Tag = "vihu2";
-                        return;
-                    }
-                        if (kohde.Tag.ToString() == "vihu2")
-                        {
-                            kohde.Tag = "vihu1";
-                            return;
-                        }
+
+            if (kohde.Tag.ToString() == "vihu4")
+            {
+                kohde.Tag = "vihu3";
+                return;
+            }
+
+            if (kohde.Tag.ToString() == "vihu3")
+            {
+                kohde.Tag = "vihu2";
+                return;
+            }
+
+            if (kohde.Tag.ToString() == "vihu2")
+            {
+                kohde.Tag = "vihu1";
+                return;
+            }
+
             if (kohde.Tag.ToString() == "vihu1")
             {
                 kohde.Destroy();
@@ -892,18 +919,21 @@ namespace AlienEscape
                 nappiAani.Play();
                 if (lahinPainike.Image == napinKuvaPun) oviAani.Play();
                 lahinPainike.Image = napinKuvaVih;
+                lahinPainike.Image.Scaling = ImageScaling.Nearest;
                 EtsiLahinP(ovetLista, pelaaja).Destroy();
             }
 
             if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
             {
-                hissi.MoveTo(new Vector(hissi.X, hissi.Y+tileHeight*2), 100);
+                hissi.MoveTo(new Vector(hissi.X, hissi.Y + tileHeight * 2), 100);
                 vipu.Color = Color.Purple;
                 vipu.Image = vipuYlosKuva;
+                vipu.Image.Scaling = ImageScaling.Nearest;
                 vipuAani.Play();
                 hissi.Image = hissiLiikkeessaKuva;
+                hissi.Image.Scaling = ImageScaling.Nearest;
                 hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
+                Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
             }
 
             else if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
@@ -911,10 +941,12 @@ namespace AlienEscape
                 hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
                 vipu.Color = Color.Red;
                 vipu.Image = vipuAlasKuva;
+                vipu.Image.Scaling = ImageScaling.Nearest;
                 vipuAani.Play();
                 hissi.Image = hissiLiikkeessaKuva;
+                hissi.Image.Scaling = ImageScaling.Nearest;
                 hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.MakeOneWay(); });
+                Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
             }
 
             PhysicsObject lahinAarre = EtsiLahinP(aarteetLista, pelaaja);
