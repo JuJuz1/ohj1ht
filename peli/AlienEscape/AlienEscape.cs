@@ -507,11 +507,25 @@ namespace AlienEscape
             {
                 if (laser.Tag.ToString() == "laser") // CollisionHandler käsittelee pelaajan ja laserin välisen törmäyksen vaan, jos Tag = "laser".
                 {
-                    laser.IsVisible = false; laser.IgnoresCollisionResponse = true; laser.Tag = "laserPois"; // Jos Tag = "laser", muutetaan näkymättömäksi, poistetaan törmäykset ja tagi "laserPois"
+                    laser.IsVisible = false; 
+                    laser.IgnoresCollisionResponse = true;
+                    laser.Tag = "laserPois"; // Jos Tag = "laser", muutetaan näkymättömäksi, poistetaan törmäykset ja tagi "laserPois"
                 }
+
                 else
                 {
-                    laser.IsVisible = true; laser.IgnoresCollisionResponse = false; laser.Tag = "laser"; // Jos Tag != "laser", muutetaan näkyväksi, otetaan törmäykset käyttöön ja vaihdetaan Tagiksi "laser"
+                    laser.IsVisible = true;
+                    laser.IgnoresCollisionResponse = false;
+                    laser.Tag = "laser"; // Jos Tag != "laser", muutetaan näkyväksi, otetaan törmäykset käyttöön ja vaihdetaan Tagiksi "laser"
+                    if (Math.Abs(laser.Y - pelaaja1.Y) < tileHeight * 1.5 && Math.Abs(laser.X - pelaaja1.X) < tileWidth * 0.3)
+                    {
+                        Pelaaja1Vahingoittui(pelaaja1, laser);
+                    }
+
+                    if (Math.Abs(laser.Y - pelaaja2.Y) < tileHeight * 1.5 && Math.Abs(laser.X - pelaaja2.X) < tileWidth * 0.3)
+                    {
+                        Pelaaja2Vahingoittui(pelaaja2, laser);
+                    }
                 }
             };
             ajastin.Start();
@@ -912,61 +926,73 @@ namespace AlienEscape
         /// <param name="pelaaja">Pelaaja, joka yrittää käyttää lähellä olevaa objektia</param>
         private void KaytaObjektia(PhysicsObject pelaaja)
         {
-            GameObject lahinPainike = EtsiLahin(painikkeetLista, pelaaja);
-            if (Etaisyys(pelaaja, lahinPainike) < tileWidth * 0.3)
+            if (painikkeetLista.Count > 0)
             {
-                lahinPainike.Color = Color.Green;
-                nappiAani.Play();
-                if (lahinPainike.Image == napinKuvaPun) oviAani.Play();
-                lahinPainike.Image = napinKuvaVih;
-                lahinPainike.Image.Scaling = ImageScaling.Nearest;
-                EtsiLahinP(ovetLista, pelaaja).Destroy();
+                GameObject lahinPainike = EtsiLahin(painikkeetLista, pelaaja);
+                if (Etaisyys(pelaaja, lahinPainike) < tileWidth * 0.3)
+                {
+                    lahinPainike.Color = Color.Green;
+                    nappiAani.Play();
+                    if (lahinPainike.Image == napinKuvaPun) oviAani.Play();
+                    lahinPainike.Image = napinKuvaVih;
+                    lahinPainike.Image.Scaling = ImageScaling.Nearest;
+                    EtsiLahinP(ovetLista, pelaaja).Destroy();
+                }
             }
 
-            if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
+            if (vipu != null)
             {
-                hissi.MoveTo(new Vector(hissi.X, hissi.Y + tileHeight * 2), 100);
-                vipu.Color = Color.Purple;
-                vipu.Image = vipuYlosKuva;
-                vipu.Image.Scaling = ImageScaling.Nearest;
-                vipuAani.Play();
-                hissi.Image = hissiLiikkeessaKuva;
-                hissi.Image.Scaling = ImageScaling.Nearest;
-                hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
+                if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
+                {
+                    hissi.MoveTo(new Vector(hissi.X, hissi.Y + tileHeight * 2), 100);
+                    vipu.Color = Color.Purple;
+                    vipu.Image = vipuYlosKuva;
+                    vipu.Image.Scaling = ImageScaling.Nearest;
+                    vipuAani.Play();
+                    hissi.Image = hissiLiikkeessaKuva;
+                    hissi.Image.Scaling = ImageScaling.Nearest;
+                    hissi.Tag = "liikkeessa";
+                    Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
+                }
+
+                else if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
+                {
+                    hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
+                    vipu.Color = Color.Red;
+                    vipu.Image = vipuAlasKuva;
+                    vipu.Image.Scaling = ImageScaling.Nearest;
+                    vipuAani.Play();
+                    hissi.Image = hissiLiikkeessaKuva;
+                    hissi.Image.Scaling = ImageScaling.Nearest;
+                    hissi.Tag = "liikkeessa";
+                    Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
+                }
             }
 
-            else if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
+            if (aarteetLista.Count > 0)
             {
-                hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
-                vipu.Color = Color.Red;
-                vipu.Image = vipuAlasKuva;
-                vipu.Image.Scaling = ImageScaling.Nearest;
-                vipuAani.Play();
-                hissi.Image = hissiLiikkeessaKuva;
-                hissi.Image.Scaling = ImageScaling.Nearest;
-                hissi.Tag = "liikkeessa";
-                Timer.SingleShot(1.6, delegate { hissi.Tag = "alhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
+                PhysicsObject lahinAarre = EtsiLahinP(aarteetLista, pelaaja);
+                if (Etaisyys(pelaaja, lahinAarre) < tileWidth * 0.5)
+                {
+                    aarteet.Value += 1;
+                    pisteet++;
+                    aarreAani.Play();
+                    lahinAarre.Destroy();
+                    lahinAarre.X = Screen.Left;
+                    lahinAarre.Y = Screen.Top;
+                }
             }
 
-            PhysicsObject lahinAarre = EtsiLahinP(aarteetLista, pelaaja);
-            if (Etaisyys(pelaaja, lahinAarre) < tileWidth * 0.5)
+            if (exit != null)
             {
-                aarteet.Value += 1;
-                pisteet++;
-                aarreAani.Play();
-                lahinAarre.Destroy();
-                lahinAarre.X = Screen.Left;
-                lahinAarre.Y = Screen.Top;
+                if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
+                {
+                    kenttaNro++;
+                    LuoKentta(kenttaNro);
+                }
             }
 
-            if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
-            {
-               kenttaNro++;
-               LuoKentta(kenttaNro);
-            }
-
-            if (kenttaNro == 4) // Kaatuu jos ei ole, TODO: tutki toimiiko, jos tarkistaa if (aselaatikko != null)
+            if (aselaatikko != null) // Kaatuu jos ei ole
             {
                 if ((Etaisyys(pelaaja, aselaatikko) < tileWidth * 0.5))
                 {
