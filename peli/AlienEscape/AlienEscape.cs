@@ -30,6 +30,7 @@ namespace AlienEscape
         private PhysicsObject hissi;
         private PhysicsObject exit;
         private PhysicsObject aselaatikko;
+        private PhysicsObject putoavaPommi;
 
         /// <summary>
         /// Esitellään laskurit
@@ -47,7 +48,7 @@ namespace AlienEscape
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
-        private int HPvihu = 5;
+        // private int HPvihu = 5;
         private int pisteet = 0;
         private Label nayttoHP1;
         private Label nayttoHP2;
@@ -199,7 +200,7 @@ namespace AlienEscape
         /// </summary>
         private void SuljeValikko(MultiSelectWindow valikko)
         {
-            valikko.Destroy();         
+            valikko.Destroy();
         }
 
 
@@ -211,7 +212,7 @@ namespace AlienEscape
         {
             YesNoWindow vahvistusIkkuna = new YesNoWindow("Menetät edistymisesi pelissä, jos palaat takaisin alkuvalikkoon.\nHaluatko varmasti palata takaisin alkuvalikkoon?");
             vahvistusIkkuna.Yes += delegate { NollaaLaskurit(); LuoAlkuvalikko(); };
-                Add(vahvistusIkkuna);
+            Add(vahvistusIkkuna);
         }
 
 
@@ -232,8 +233,8 @@ namespace AlienEscape
             kentta.SetTileMethod('B', LuoOvenPainike);
             kentta.SetTileMethod('b', LuoVipu);
             kentta.SetTileMethod('H', LuoHissi);
-            kentta.SetTileMethod('1', LuoPelaaja1, this);
-            kentta.SetTileMethod('2', LuoPelaaja2, this);
+            kentta.SetTileMethod('1', LuoPelaaja1);
+            kentta.SetTileMethod('2', LuoPelaaja2);
             kentta.SetTileMethod('*', LuoVihollinen);
             kentta.SetTileMethod('E', LuoExit);
             kentta.SetTileMethod('L', LuoAseLaatikko);
@@ -253,8 +254,8 @@ namespace AlienEscape
 
             Camera.ZoomToLevel();
             Level.CreateBorders();
-            
-            string[] vahingoittavat = { "piikki", "laser", "vihu", "putoava" };
+
+            string[] vahingoittavat = { "piikki", "laser", "vihu5", "vihu4", "vihu3", "vihu2", "vihu1", "putoava" };
 
             foreach (string tag in vahingoittavat)
             {
@@ -269,7 +270,7 @@ namespace AlienEscape
 
             if (kenttaNro == 5)
             {
-                PudotaPalikoita();
+                PudotaPommeja();
                 AktivoiAseet();
             }
         }
@@ -278,21 +279,72 @@ namespace AlienEscape
         /// <summary>
         /// Luodaan putoavat palikat
         /// </summary>
-        private void PudotaPalikoita()
+        private void PudotaPommeja()
         {
             Timer ajastin1 = new Timer();
-            ajastin1.Interval = 4.0;
+            ajastin1.Interval = 3.0;
             ajastin1.Timeout += delegate
             {
-                PhysicsObject putoavaPalikka = new PhysicsObject(tileWidth * 0.3, tileHeight * 0.9);
-                putoavaPalikka.X = RandomGen.NextDouble(Screen.Left + tileWidth * 2, Screen.Right - tileWidth * 2);
-                putoavaPalikka.Y = Screen.Top - tileHeight * 0.5;
-                putoavaPalikka.Tag = "putoava";
-                Add(putoavaPalikka);
+                putoavaPommi = new PhysicsObject(tileWidth * 0.3, tileHeight * 0.3, Shape.Circle);
+                putoavaPommi.X = RandomGen.NextDouble(Screen.Left + tileWidth * 2, Screen.Right - tileWidth * 2);
+                putoavaPommi.Y = Screen.Top - tileHeight * 0.5;
+                putoavaPommi.Tag = "putoava";
+                putoavaPommi.LifetimeLeft = TimeSpan.FromSeconds(2.0);
+                Add(putoavaPommi);
+
+                Timer.SingleShot(1.99, delegate { RajaytaPommi(); });
             };
 
             ajastin1.Start();
         }
+
+        /// <summary>
+        /// Tekee rajahdyksen pommille
+        /// </summary>
+        private void RajaytaPommi()
+        {
+            Explosion rajahdys = new Explosion(tileWidth);
+            rajahdys.Position = putoavaPommi.Position;
+            // rajahdys.Image = rajahdysKuva;
+            // rajahdys.Sound = rajahdysAani;
+            if (!putoavaPommi.IsDestroyed)
+            { 
+                Add(rajahdys);
+
+                if (Etaisyys(pelaaja1, rajahdys) < tileWidth * 1.25)
+                {
+                    /*
+                    HP1--;
+                    pelaaja1HP.Value -= 1;
+                    if (pelaaja1HP <= 0) PeliLoppuu();
+                    */
+                    Pelaaja1Vahingoittui(pelaaja1, putoavaPommi);
+                }
+
+                if (Etaisyys(pelaaja2, rajahdys) < tileWidth * 1.25)
+                {
+                    /*
+                    HP2--;
+                    pelaaja2HP.Value -= 1;
+                    if (pelaaja2HP <= 0) PeliLoppuu();
+                    */
+                    Pelaaja2Vahingoittui(pelaaja2, putoavaPommi);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Rajayttaa pommin (pelaajan koskettaessa) ((väliaikainen?))
+        /// </summary>
+        private void RajaytaPommi2()
+        {
+            Explosion rajahdys = new Explosion(tileWidth);
+            rajahdys.Position = putoavaPommi.Position;
+            // rajahdys.Image = rajahdysKuva;
+            // rajahdys.Sound = rajahdysAani;
+            Add(rajahdys);
+        }
+
 
 
         /// <summary>
@@ -566,15 +618,20 @@ namespace AlienEscape
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
-        private void LuoPelaaja1(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
+        private void LuoPelaaja1(Vector paikka, double leveys, double korkeus)
         {
-            pelaaja1 = new Pelaaja(peli, pelaaja1Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja1 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja1.Position = paikka;
+            pelaaja1.Image = pelaaja1Kuva;
+            pelaaja1.Image.Scaling = ImageScaling.Nearest;
             pelaaja1.AnimWalk = new Animation(pelaaja1Kavely);
             pelaaja1.AnimWalk.FPS = 10;
             pelaaja1.AnimIdle = pelaaja1Kuva;
             pelaaja1.AnimJump = pelaaja1Hyppy;
             pelaaja1.AnimFall = pelaaja1Kuva;
+            pelaaja1.IgnoresExplosions = true;
             LisaaAse(pelaaja1);
+            Add(pelaaja1, 2);
         }
 
 
@@ -585,15 +642,20 @@ namespace AlienEscape
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         /// <param name="peli">Fysiikkapeli, johon pelaaja lisätään</param>
-        private void LuoPelaaja2(Vector paikka, double leveys, double korkeus, PhysicsGame peli)
+        private void LuoPelaaja2(Vector paikka, double leveys, double korkeus)
         {
-            pelaaja2 = new Pelaaja(peli, pelaaja2Kuva, paikka, leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2 = new PlatformCharacter(leveys * 0.5, korkeus * 0.8, Shape.Rectangle);
+            pelaaja2.Position = paikka;
+            pelaaja2.Image = pelaaja2Kuva;
+            pelaaja2.Image.Scaling = ImageScaling.Nearest;
             pelaaja2.AnimWalk = new Animation(pelaaja2Kavely);
             pelaaja2.AnimWalk.FPS = 10;
             pelaaja2.AnimIdle = pelaaja2Kuva;
             pelaaja2.AnimJump = pelaaja2Hyppy;
             pelaaja2.AnimFall = pelaaja2Kuva;
+            pelaaja2.IgnoresExplosions = true;
             LisaaAse(pelaaja2);
+            Add(pelaaja2, 2);
         }
 
 
@@ -624,7 +686,7 @@ namespace AlienEscape
         private void LuoVihollinen(Vector paikka, double leveys, double korkeus)
         {
             PhysicsObject vihollinen = new PhysicsObject(leveys * 0.7, korkeus * 0.7);
-            vihollinen.Tag = "vihu";
+            vihollinen.Tag = "vihu5";
             vihollinen.Position = paikka;
             vihollinen.Y -= 12; // Vihujen jalat koskettavat maata
             vihollinen.IgnoresGravity = true;
@@ -681,16 +743,31 @@ namespace AlienEscape
 
             ammus.Destroy();
 
-            if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            // if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
 
-            if (kohde.Tag.ToString() == "vihu")
+            if (kohde.Tag.ToString() == "vihu5")
             {
-                HPvihu--;
-                if (HPvihu <= 0)
+                kohde.Tag = "vihu4";
+                return;
+            }
+                if (kohde.Tag.ToString() == "vihu4")
                 {
-                    kohde.Destroy();
-                    HPvihu = 5;
+                    kohde.Tag = "vihu3";
+                    return;
                 }
+                    if (kohde.Tag.ToString() == "vihu3")
+                    {
+                        kohde.Tag = "vihu2";
+                        return;
+                    }
+                        if (kohde.Tag.ToString() == "vihu2")
+                        {
+                            kohde.Tag = "vihu1";
+                            return;
+                        }
+            if (kohde.Tag.ToString() == "vihu1")
+            {
+                kohde.Destroy();
             }
         }
 
@@ -878,6 +955,7 @@ namespace AlienEscape
         /// <returns>etäisyys</returns>
         private static double Etaisyys(GameObject o1, GameObject o2)
         {
+            if (o2 == null) return double.MaxValue;
             return Math.Sqrt((o1.X - o2.X) * (o1.X - o2.X) + (o1.Y - o2.Y) * (o1.Y - o2.Y)); // c = sqrt(a^2 + b^2)
         }
 
@@ -941,7 +1019,7 @@ namespace AlienEscape
             pelaaja1HP.Value -= 1;
             HP1--;
 
-            if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            if (kohde.Tag.ToString() == "putoava") { kohde.Destroy(); RajaytaPommi2(); }
             if (kohde.Tag.ToString() == "laser") osuiAani.Play();
 
             if (pelaaja1HP <= 0) PeliLoppuu();
@@ -961,7 +1039,7 @@ namespace AlienEscape
             pelaaja2HP.Value -= 1;
             HP2--;
 
-            if (kohde.Tag.ToString() == "putoava") kohde.Destroy();
+            if (kohde.Tag.ToString() == "putoava") { kohde.Destroy(); RajaytaPommi2(); }
             if (kohde.Tag.ToString() == "laser") osuiAani.Play();
 
             if (pelaaja2HP <= 0) PeliLoppuu();
@@ -1002,6 +1080,7 @@ namespace AlienEscape
         }
     }
 
+    /*
     public class Pelaaja : PlatformCharacter
     {
         public Pelaaja(PhysicsGame peli, Image kuva, Vector paikka, double leveys, double korkeus, Shape muoto): base(leveys, korkeus, muoto)
@@ -1012,4 +1091,5 @@ namespace AlienEscape
             peli.Add(this, 2);
         }
     }
+    */
 }
