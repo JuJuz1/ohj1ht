@@ -85,8 +85,10 @@ namespace AlienEscape
         private readonly Image pelaaja2KuvaAse = LoadImage("pelaaja2_1_A");
         private readonly Image pelaaja2HyppyAse = LoadImage("pelaaja2_hyppy_A");
         private readonly Image[] pelaaja2KavelyAse = LoadImages("pelaaja2_2_A", "pelaaja2_4_A", "pelaaja2_3_A");
-        private readonly Image alienKuva = LoadImage("alien1");
         private readonly Image[] alienKavely = LoadImages("alien3", "alien1", "alien2", "alien1");
+        private readonly Image alkuvalikonTaustakuva = LoadImage("mainmenu_1");
+        private readonly Image pomminKuva = LoadImage("alienpommi");
+        private readonly Image aselaatikkoKuva = LoadImage("aselaatikko1"); // Content-hakemistossa on vaihtoehtoinen kuva "aselaatikko2"
 
         /// <summary>
         /// Ladataan pelissä tarvittavat äänet
@@ -100,6 +102,7 @@ namespace AlienEscape
         private readonly SoundEffect oviAani = LoadSoundEffect("ovi");
         private readonly SoundEffect vipuAani = LoadSoundEffect("vipu");
         private readonly SoundEffect kavelyAani = LoadSoundEffect("kavely");
+        private readonly SoundEffect alienAani = LoadSoundEffect("aiai_alien"); // Content-hakemistossa on vaihtoehtoinen ääni "aiai_alien2"
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -118,25 +121,19 @@ namespace AlienEscape
         private void LuoAlkuvalikko()
         {
             ClearAll();
+            IsPaused = false;
 
-
-            MultiSelectWindow alkuvalikko = new MultiSelectWindow("Alkuvalikko", "Aloita peli", "Valitse kenttä", "Lopeta");
+            MultiSelectWindow alkuvalikko = new MultiSelectWindow("", "Aloita peli", "Valitse kenttä", "Kokoruututila" , "Lopeta");
             Add(alkuvalikko);
 
-            alkuvalikko.AddItemHandler(0, AloitaPeli);
+            alkuvalikko.AddItemHandler(0, LuoKentta, 1);
             alkuvalikko.AddItemHandler(1, LuoKenttavalikko);
-            alkuvalikko.AddItemHandler(2, ConfirmExit, LuoAlkuvalikko);
+            alkuvalikko.AddItemHandler(2, VaihdaFullScreenValikossa);
+            alkuvalikko.AddItemHandler(3, VahvistaLopetus, LuoAlkuvalikko);
 
+            Level.Background.Image = alkuvalikonTaustakuva;
+            Camera.ZoomToLevel();
             MediaPlayer.Stop();
-        }
-
-
-        /// <summary>
-        /// Aloitetaan peli ensimmäisestä kentästä
-        /// </summary>
-        private void AloitaPeli()
-        {
-            LuoKentta(1);
         }
 
 
@@ -192,7 +189,9 @@ namespace AlienEscape
 
             pelivalikko.AddItemHandler(0, SuljeValikko, pelivalikko);
             pelivalikko.AddItemHandler(1, VahvistaAlkuvalikkoon);
-            pelivalikko.AddItemHandler(2, ConfirmExit, LuoAlkuvalikko);
+            pelivalikko.AddItemHandler(2, VahvistaLopetus, LuoPelivalikko);
+
+            IsPaused = true;
         }
 
 
@@ -202,6 +201,7 @@ namespace AlienEscape
         private void SuljeValikko(MultiSelectWindow valikko)
         {
             valikko.Destroy();
+            IsPaused = false;
         }
 
 
@@ -211,8 +211,9 @@ namespace AlienEscape
         /// </summary>
         private void VahvistaAlkuvalikkoon()
         {
-            YesNoWindow vahvistusIkkuna = new YesNoWindow("Menetät edistymisesi pelissä, jos palaat takaisin alkuvalikkoon.\nHaluatko varmasti palata takaisin alkuvalikkoon?");
+            YesNoWindow vahvistusIkkuna = new YesNoWindow("Menetät edistymisesi pelissä, jos palaat takaisin alkuvalikkoon.\nHaluatko varmasti palata takaisin alkuvalikkoon?", "Kyllä", "Ei");
             vahvistusIkkuna.Yes += delegate { NollaaLaskurit(); LuoAlkuvalikko(); };
+            vahvistusIkkuna.No += delegate { IsPaused = false; };
             Add(vahvistusIkkuna);
         }
 
@@ -308,8 +309,10 @@ namespace AlienEscape
         private void LuoPommi()
         {
             PhysicsObject putoavaPommi = new PhysicsObject(tileWidth * 0.3, tileHeight * 0.3, Shape.Circle);
-            putoavaPommi.X = RandomGen.NextDouble(Screen.Left + tileWidth, Screen.Right - tileWidth);
-            putoavaPommi.Y = Screen.Top - tileHeight * 2;
+            putoavaPommi.X = RandomGen.NextDouble(Level.Left + tileWidth, Level.Right - tileWidth);
+            putoavaPommi.Y = Level.Top - tileHeight * 1;
+            putoavaPommi.Image = pomminKuva;
+            putoavaPommi.Image.Scaling = ImageScaling.Nearest;
             putoavaPommi.Tag = "putoava";
             putoavaPommi.LifetimeLeft = TimeSpan.FromSeconds(2.0);
             Add(putoavaPommi);
@@ -430,6 +433,9 @@ namespace AlienEscape
             Keyboard.Listen(Key.RightShift, ButtonState.Down, AmmuAseella, "Pelaaja 2: Ammu", pelaaja2);
         }
 
+        /// <summary>
+        /// Vaihdetaan kokoruututilaan, tai ikkunatilaan, jos ollaan valmiiksi kokoruututilassa
+        /// </summary>
         private void VaihdaFullScreen()
         {
             if (IsFullScreen) IsFullScreen = false;
@@ -438,6 +444,16 @@ namespace AlienEscape
             nayttoHP1.Position = new Vector(Screen.Left + 100, Screen.Top - 50);
             nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
             nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
+        }
+
+        /// <summary>
+        /// Vaihdetaan kokoruututilaan, tai ikkunatilaan, jos ollaan valmiiksi kokoruututilassa
+        /// </summary>
+        private void VaihdaFullScreenValikossa()
+        {
+            if (IsFullScreen) IsFullScreen = false;
+            else IsFullScreen = true;
+            LuoAlkuvalikko();
         }
 
 
@@ -547,8 +563,6 @@ namespace AlienEscape
                 }
             };
             ajastin.Start();
-
-            // TODO: Korjaa: pelaaja ei ota vahinkoa laserin käynnistyessä, jos pelaaja on laserin kohdalla
         }
 
 
@@ -871,6 +885,7 @@ namespace AlienEscape
             if (kohde.Tag.ToString() == "vihu1")
             {
                 kohde.Destroy();
+                alienAani.Play();
 
                 if (kenttaNro == 5)
                 {
@@ -908,8 +923,8 @@ namespace AlienEscape
             aselaatikko.X = paikka.X;
             aselaatikko.Y = paikka.Y - korkeus * 0.25;
             aselaatikko.Color = Color.DarkBrown;
-            // TODO: aselaatikko.Image = ??;
-            // aselaatikko.Image.Scaling = ImageScaling.Nearest;
+            aselaatikko.Image = aselaatikkoKuva;
+            aselaatikko.Image.Scaling = ImageScaling.Nearest;
             aselaatikko.IgnoresCollisionResponse = true;
             Add(aselaatikko);
         }
@@ -1017,6 +1032,7 @@ namespace AlienEscape
                             MessageDisplay.Font = new Font(30);
                             MessageDisplay.Add("Portaali on auennut!");
                             MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
+                            exit.IsVisible = true; // Exit-portaali tulee näkyviin
                         }
                         );
                     }
@@ -1209,28 +1225,33 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Peli loppuu
+        /// Kysyy pelaajalta haluaako hän varmasti lopettaa. Jos kyllä, peli loppuu. Jos ei, suoritetaan parametrina annettu aliohjelma.
+        /// </summary>
+        private void VahvistaLopetus(Action eiLopetettu)
+        {
+            YesNoWindow vahvistusIkkuna = new YesNoWindow("Haluatko varmasti lopettaa pelin?", "Kyllä", "Ei");
+            vahvistusIkkuna.Yes += Exit;
+            vahvistusIkkuna.No += eiLopetettu;
+            Add(vahvistusIkkuna);
+        }
+
+
+        /// <summary>
+        /// Kutsutaan, kun jommankumman pelaajan HP menee nollaan. Luo loppuvalikon
         /// </summary>
         private void PeliLoppuu()
         {
-        ClearAll();
-        ConfirmExit(LuoAlkuvalikko); // TODO: muuta niin, että voi aloittaa kentän alusta
-        NollaaLaskurit();
-        MediaPlayer.Stop();
-        // TODO: äänet, tekstiä, aloita alusta-nappi yms.
-        }
-    }
+            ClearAll();
+            NollaaLaskurit();
+            MediaPlayer.Stop();
 
-    /*
-    public class Pelaaja : PlatformCharacter
-    {
-        public Pelaaja(PhysicsGame peli, Image kuva, Vector paikka, double leveys, double korkeus, Shape muoto): base(leveys, korkeus, muoto)
-        {
-            this.Position = paikka;
-            this.Image = kuva;
-            this.Image.Scaling = ImageScaling.Nearest;
-            peli.Add(this, 2);
+            MultiSelectWindow loppuvalikko = new MultiSelectWindow("Kuolit! Haluatko yrittää kenttää uudelleen?\nMenetät tähän asti kertyneet pisteet.",
+                "Yritä kenttää uudelleen", "Aloita peli alusta", "Alkuvalikkoon", "Lopeta");
+            Add(loppuvalikko);
+            loppuvalikko.AddItemHandler(0, LuoKentta, kenttaNro);
+            loppuvalikko.AddItemHandler(1, LuoKentta, 1);
+            loppuvalikko.AddItemHandler(2, LuoAlkuvalikko);
+            loppuvalikko.AddItemHandler(3, VahvistaLopetus, PeliLoppuu);
         }
     }
-    */
 }
