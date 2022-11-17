@@ -12,11 +12,12 @@ using System.Transactions;
 
 namespace AlienEscape
 {
-    /// <summary>
-    /// Luodaan pelin luokka
-    /// </summary>
     /// @author Juuso Piippo & Elias Lehtinen
-    /// @version 16.11.2022
+    /// @version 17.11.2022
+    /// 
+    /// <summary>
+    /// Kaksin pelattava tasohyppely- ja ongelmanratkaisupeli
+    /// </summary>
     public class AlienEscape : PhysicsGame
     {
         /// <summary>
@@ -43,9 +44,9 @@ namespace AlienEscape
         /// <summary>
         /// Määritellään pelikentän luomiseen ja pelaamiseen tarvittavat lvuut/muuttujat
         /// </summary>
-        private const int tileWidth = 80;
-        private const int tileHeight = 80;
-        private const int maxKenttaNro = 5; // TODO: Muutetaan maxKenttaNro sitä mukaa, kun lisätään kenttiä
+        private const int TILE_WIDTH = 80;
+        private const int TILE_HEIGHT = 80;
+        private const int MAX_KENTTA_NRO = 5; // TODO: Muutetaan MAX_KENTTA_NRO sitä mukaa, kun lisätään kenttiä
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
@@ -167,7 +168,7 @@ namespace AlienEscape
             painikkeetLista.Clear();
             aarteetLista.Clear();
 
-            if (kenttaNro > maxKenttaNro) PeliLoppuu();
+            if (kenttaNro > MAX_KENTTA_NRO) PeliLoppuu();
             else KenttaTiedostosta("kentta" + kenttaNro);
 
             LuoMuut(); // Luodaan laskurit, collisionhandlerit, ohjaimet, kentän reunat ja zoomataan kamera kenttään
@@ -175,8 +176,7 @@ namespace AlienEscape
             MediaPlayer.Play("taustamusiikki1"); // Käynnistetään taustamusiikki
             MediaPlayer.IsRepeating = true;
         }
-
-        // TODO: Lisää kenttiä ja lopetus, muista muuttaa maxKenttaNro arvoa, kun lisätään kenttiä
+        // TODO: Lisää viimeinen kenttä ja lopputekstit
 
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace AlienEscape
             kentta.SetTileMethod('E', LuoExit);
             kentta.SetTileMethod('L', LuoAseLaatikko);
 
-            kentta.Execute(tileWidth, tileHeight); // Luodaan kenttä
+            kentta.Execute(TILE_WIDTH, TILE_HEIGHT); // Luodaan kenttä
         }
 
 
@@ -308,9 +308,9 @@ namespace AlienEscape
         /// </summary>
         private void LuoPommi()
         {
-            PhysicsObject putoavaPommi = new PhysicsObject(tileWidth * 0.3, tileHeight * 0.3, Shape.Circle);
-            putoavaPommi.X = RandomGen.NextDouble(Level.Left + tileWidth, Level.Right - tileWidth);
-            putoavaPommi.Y = Level.Top - tileHeight * 1;
+            PhysicsObject putoavaPommi = new PhysicsObject(TILE_WIDTH * 0.3, TILE_HEIGHT * 0.3, Shape.Circle);
+            putoavaPommi.X = RandomGen.NextDouble(Level.Left + TILE_WIDTH, Level.Right - TILE_WIDTH);
+            putoavaPommi.Y = Level.Top - TILE_HEIGHT * 1;
             putoavaPommi.Image = pomminKuva;
             putoavaPommi.Image.Scaling = ImageScaling.Nearest;
             putoavaPommi.Tag = "putoava";
@@ -326,7 +326,7 @@ namespace AlienEscape
         /// </summary>
         private void RajaytaPommi(PhysicsObject putoavaPommi)
         {
-            Explosion rajahdys = new Explosion(tileWidth);
+            Explosion rajahdys = new Explosion(TILE_WIDTH);
             rajahdys.Position = putoavaPommi.Position;
             // rajahdys.Image = rajahdysKuva;
             // rajahdys.Sound = rajahdysAani;
@@ -334,23 +334,13 @@ namespace AlienEscape
             { 
                 Add(rajahdys);
 
-                if (Etaisyys(pelaaja1, rajahdys) < tileWidth * 1.25)
+                if (Etaisyys(pelaaja1, rajahdys) < TILE_WIDTH * 1.25)
                 {
-                    /*
-                    HP1--;
-                    pelaaja1HP.Value -= 1;
-                    if (pelaaja1HP <= 0) PeliLoppuu();
-                    */
                     Pelaaja1Vahingoittui(pelaaja1, putoavaPommi);
                 }
 
-                if (Etaisyys(pelaaja2, rajahdys) < tileWidth * 1.25)
+                if (Etaisyys(pelaaja2, rajahdys) < TILE_WIDTH * 1.25)
                 {
-                    /*
-                    HP2--;
-                    pelaaja2HP.Value -= 1;
-                    if (pelaaja2HP <= 0) PeliLoppuu();
-                    */
                     Pelaaja2Vahingoittui(pelaaja2, putoavaPommi);
                 }
             }
@@ -362,7 +352,7 @@ namespace AlienEscape
         /// </summary>
         private void RajaytaPommi2(PhysicsObject putoavaPommi)
         {
-            Explosion rajahdys = new Explosion(tileWidth);
+            Explosion rajahdys = new Explosion(TILE_WIDTH);
             rajahdys.Position = putoavaPommi.Position;
             // rajahdys.Image = rajahdysKuva;
             // rajahdys.Sound = rajahdysAani;
@@ -392,7 +382,7 @@ namespace AlienEscape
                 MessageDisplay.TextColor = Color.Black;
                 MessageDisplay.Font = new Font(30);
                 MessageDisplay.Add("Käytössänne on nyt aseet! Paina F1 ohjeita varten!");
-                MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
+                MessageDisplay.Position = new Vector(0, Screen.Top - TILE_HEIGHT * 1);
                 aktivoiAseAani.Play();
             }
         }
@@ -433,6 +423,7 @@ namespace AlienEscape
             Keyboard.Listen(Key.RightShift, ButtonState.Down, AmmuAseella, "Pelaaja 2: Ammu", pelaaja2);
         }
 
+
         /// <summary>
         /// Vaihdetaan kokoruututilaan, tai ikkunatilaan, jos ollaan valmiiksi kokoruututilassa
         /// </summary>
@@ -445,6 +436,7 @@ namespace AlienEscape
             nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
             nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
         }
+
 
         /// <summary>
         /// Vaihdetaan kokoruututilaan, tai ikkunatilaan, jos ollaan valmiiksi kokoruututilassa
@@ -551,12 +543,12 @@ namespace AlienEscape
                     laser.IsVisible = true;
                     laser.IgnoresCollisionResponse = false;
                     laser.Tag = "laser"; // Jos Tag != "laser", muutetaan näkyväksi, otetaan törmäykset käyttöön ja vaihdetaan Tagiksi "laser"
-                    if (Math.Abs(laser.Y - pelaaja1.Y) < tileHeight * 1.5 && Math.Abs(laser.X - pelaaja1.X) < tileWidth * 0.3)
+                    if (Math.Abs(laser.Y - pelaaja1.Y) < TILE_HEIGHT * 1.5 && Math.Abs(laser.X - pelaaja1.X) < TILE_WIDTH * 0.3)
                     {
                         Pelaaja1Vahingoittui(pelaaja1, laser);
                     }
 
-                    if (Math.Abs(laser.Y - pelaaja2.Y) < tileHeight * 1.5 && Math.Abs(laser.X - pelaaja2.X) < tileWidth * 0.3)
+                    if (Math.Abs(laser.Y - pelaaja2.Y) < TILE_HEIGHT * 1.5 && Math.Abs(laser.X - pelaaja2.X) < TILE_WIDTH * 0.3)
                     {
                         Pelaaja2Vahingoittui(pelaaja2, laser);
                     }
@@ -752,26 +744,6 @@ namespace AlienEscape
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         private void LuoVihollinen(Vector paikka, double leveys, double korkeus)
         {
-            /*
-            
-            PhysicsObject vihollinen = new PhysicsObject(leveys * 0.7, korkeus * 0.7);
-            vihollinen.Tag = "vihu3";
-            vihollinen.Position = paikka;
-            vihollinen.Y -= 12; // Vihujen jalat koskettavat maata
-            vihollinen.IgnoresGravity = true;
-            vihollinen.IgnoresCollisionResponse = true;
-            vihollinen.Animation = new Animation(alienKavely);
-            vihollinen.Image.Scaling = ImageScaling.Nearest;
-            if (kenttaNro < 4) { vihollinen.Oscillate(Vector.UnitX, tileWidth * 0.75, RandomGen.NextDouble(0.6, 0.75)); }
-            if (kenttaNro == 4) { vihollinen.Oscillate(Vector.UnitX, tileWidth * 1.15, RandomGen.NextDouble(0.7, 0.85)); }
-
-            if (kenttaNro == 5)
-            {
-                seuraajanAivot.Active = true;
-                Timer.SingleShot(1.0, delegate { Add(vihollinen); });
-            }
-            */
-
             List<Vector> polku = new List<Vector>();
 
             vihollinen = new PlatformCharacter(leveys * 1, korkeus * 1); //0.7
@@ -786,9 +758,9 @@ namespace AlienEscape
 
             PathFollowerBrain polkuaivot = new PathFollowerBrain();
 
-            polku.Add(new Vector(vihollinen.X - tileWidth, vihollinen.Y));
+            polku.Add(new Vector(vihollinen.X - TILE_WIDTH, vihollinen.Y));
             polku.Add(new Vector(vihollinen.X, vihollinen.Y));
-            polku.Add(new Vector(vihollinen.X + tileWidth, vihollinen.Y));
+            polku.Add(new Vector(vihollinen.X + TILE_WIDTH, vihollinen.Y));
 
             polkuaivot.Path = polku;
             polkuaivot.Loop = true;
@@ -799,8 +771,8 @@ namespace AlienEscape
             {
                 FollowerBrain seuraajanAivot = new FollowerBrain(pelaaja1, pelaaja2);
                 seuraajanAivot.Speed = 100;
-                seuraajanAivot.DistanceFar = tileWidth * 20;
-                seuraajanAivot.DistanceClose = tileWidth * 0.5;
+                seuraajanAivot.DistanceFar = TILE_WIDTH * 20;
+                seuraajanAivot.DistanceClose = TILE_WIDTH * 0.5;
                 seuraajanAivot.StopWhenTargetClose = false;
                 vihollinen.Brain = seuraajanAivot;
                 seuraajanAivot.Active = true;
@@ -838,16 +810,6 @@ namespace AlienEscape
         private void AmmuAseella(PlatformCharacter pelaaja)
         {
             PhysicsObject ammus = pelaaja.Weapon.Shoot();
-
-            /*
-            if (ammus == null)
-            {
-                MessageDisplay.Color = Color.White;
-                MessageDisplay.MaxMessageCount = 1;
-                MessageDisplay.MessageTime = new TimeSpan(0, 0, 3);
-                MessageDisplay.Add("Jotain meni väärin");
-            }
-            */
         }
 
 
@@ -859,12 +821,6 @@ namespace AlienEscape
         private void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
         {
             osuiAani.Play();
-
-            /*
-            var rajahdys = new Explosion(tileWidth * 0.05);
-            rajahdys.Position = ammus.Position;
-            Add(rajahdys);
-            */
 
             if (kohde.Tag.ToString() == "laserPois" || kohde.Tag.ToString() == "aarre" || kohde.Tag.ToString() == "") return;
 
@@ -892,7 +848,7 @@ namespace AlienEscape
                     pisteet++;
                     aarteet.Value += 1;
                     kohde.Tag = "";
-                    VihuSpawner(tileWidth, tileHeight);
+                    VihuSpawner(TILE_WIDTH, TILE_HEIGHT);
                 }
             }
         }
@@ -1014,7 +970,7 @@ namespace AlienEscape
             if (painikkeetLista.Count > 0)
             {
                 GameObject lahinPainike = EtsiLahin(painikkeetLista, pelaaja);
-                if (Etaisyys(pelaaja, lahinPainike) < tileWidth * 0.3)
+                if (Etaisyys(pelaaja, lahinPainike) < TILE_WIDTH * 0.3)
                 {
                     lahinPainike.Color = Color.Green;
                     nappiAani.Play();
@@ -1031,7 +987,7 @@ namespace AlienEscape
                             MessageDisplay.TextColor = Color.Black;
                             MessageDisplay.Font = new Font(30);
                             MessageDisplay.Add("Portaali on auennut!");
-                            MessageDisplay.Position = new Vector(0, Screen.Top - tileHeight * 1);
+                            MessageDisplay.Position = new Vector(0, Screen.Top - TILE_HEIGHT * 1);
                             exit.IsVisible = true; // Exit-portaali tulee näkyviin
                         }
                         );
@@ -1041,9 +997,9 @@ namespace AlienEscape
 
             if (vipu != null)
             {
-                if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "alhaalla")
+                if ((Etaisyys(pelaaja, vipu) < TILE_WIDTH * 0.3) && hissi.Tag.ToString() == "alhaalla")
                 {
-                    hissi.MoveTo(new Vector(hissi.X, hissi.Y + tileHeight * 2), 100);
+                    hissi.MoveTo(new Vector(hissi.X, hissi.Y + TILE_HEIGHT * 2), 100);
                     vipu.Color = Color.Purple;
                     vipu.Image = vipuYlosKuva;
                     vipu.Image.Scaling = ImageScaling.Nearest;
@@ -1054,9 +1010,9 @@ namespace AlienEscape
                     Timer.SingleShot(1.6, delegate { hissi.Tag = "ylhaalla"; hissi.Image = hissiPaikallaanKuva; hissi.Image.Scaling = ImageScaling.Nearest; hissi.MakeOneWay(); });
                 }
 
-                else if ((Etaisyys(pelaaja, vipu) < tileWidth * 0.3) && hissi.Tag.ToString() == "ylhaalla")
+                else if ((Etaisyys(pelaaja, vipu) < TILE_WIDTH * 0.3) && hissi.Tag.ToString() == "ylhaalla")
                 {
-                    hissi.MoveTo(new Vector(hissi.X, hissi.Y - tileHeight * 2), 100);
+                    hissi.MoveTo(new Vector(hissi.X, hissi.Y - TILE_HEIGHT * 2), 100);
                     vipu.Color = Color.Red;
                     vipu.Image = vipuAlasKuva;
                     vipu.Image.Scaling = ImageScaling.Nearest;
@@ -1071,7 +1027,7 @@ namespace AlienEscape
             if (aarteetLista.Count > 0)
             {
                 PhysicsObject lahinAarre = EtsiLahinP(aarteetLista, pelaaja);
-                if (Etaisyys(pelaaja, lahinAarre) < tileWidth * 0.5)
+                if (Etaisyys(pelaaja, lahinAarre) < TILE_WIDTH * 0.5)
                 {
                     aarteet.Value += 1;
                     pisteet++;
@@ -1084,7 +1040,7 @@ namespace AlienEscape
 
             if (exit != null)
             {
-                if ((Etaisyys(pelaaja1, exit) < tileWidth * 0.5) && (Etaisyys(pelaaja2, exit) < tileWidth * 0.5))
+                if ((Etaisyys(pelaaja1, exit) < TILE_WIDTH * 0.5) && (Etaisyys(pelaaja2, exit) < TILE_WIDTH * 0.5))
                 {
                     kenttaNro++;
                     LuoKentta(kenttaNro);
@@ -1093,7 +1049,7 @@ namespace AlienEscape
 
             if (aselaatikko != null) // Kaatuu jos ei ole
             {
-                if ((Etaisyys(pelaaja, aselaatikko) < tileWidth * 0.5))
+                if ((Etaisyys(pelaaja, aselaatikko) < TILE_WIDTH * 0.5))
                 {
                     aselaatikko.Destroy();
                     aselaatikko.X = Screen.Left;
