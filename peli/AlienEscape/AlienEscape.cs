@@ -14,7 +14,6 @@ namespace AlienEscape
 {
     /// @author Juuso Piippo & Elias Lehtinen
     /// @version 23.11.2022
-    /// 
     /// <summary>
     /// Kaksin pelattava tasohyppely- ja ongelmanratkaisupeli
     /// </summary>
@@ -318,7 +317,7 @@ namespace AlienEscape
         private void LuoPommi()
         {
             PhysicsObject putoavaPommi = new PhysicsObject(TILE_WIDTH * 0.3, TILE_HEIGHT * 0.3, Shape.Circle);
-            putoavaPommi.X = RandomGen.NextDouble(Level.Left + TILE_WIDTH, Level.Right - TILE_WIDTH);
+            putoavaPommi.X = RandomGen.NextDouble(Level.Left + 4.1 * TILE_WIDTH, Level.Right - 4.1 * TILE_WIDTH);
             putoavaPommi.Y = Level.Top - TILE_HEIGHT * 1;
             putoavaPommi.Image = pomminKuva;
             putoavaPommi.Image.Scaling = ImageScaling.Nearest;
@@ -337,8 +336,6 @@ namespace AlienEscape
         {
             Explosion rajahdys = new Explosion(TILE_WIDTH);
             rajahdys.Position = putoavaPommi.Position;
-            // rajahdys.Image = rajahdysKuva;
-            // rajahdys.Sound = rajahdysAani;
             if (!putoavaPommi.IsDestroyed)
             { 
                 Add(rajahdys);
@@ -357,7 +354,7 @@ namespace AlienEscape
 
 
         /// <summary>
-        /// Rajayttaa pommin (pelaajan koskettaessa) ((väliaikainen?))
+        /// Rajayttaa pommin (pelaajan koskettaessa)
         /// </summary>
         private void RajaytaPommi2(PhysicsObject putoavaPommi)
         {
@@ -926,7 +923,7 @@ namespace AlienEscape
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         private void LuoAvaruusalus(Vector paikka, double leveys, double korkeus)
         {
-            avaruusalus = new GameObject(4*leveys, 2*korkeus, Shape.Rectangle);
+            avaruusalus = new GameObject(4 * leveys, 2 * korkeus, Shape.Rectangle);
             avaruusalus.X = paikka.X - leveys * 0.5;
             avaruusalus.Y = paikka.Y + korkeus * 0.5;
             avaruusalus.Image = avaruusaluksenKuva;
@@ -1117,7 +1114,7 @@ namespace AlienEscape
                     avaruusalus.Animation.Start();
                     MediaPlayer.Play("avaruusalus");
                     MediaPlayer.IsRepeating = true;
-                    avaruusalus.MoveTo(new Vector(Level.Center.X, Level.Top), 200, LuoLopputekstit);
+                    avaruusalus.MoveTo(new Vector(Level.Center.X, Level.Top + TILE_HEIGHT), 200, LuoLopputekstit);
                 }
             }
         }
