@@ -90,6 +90,7 @@ namespace AlienEscape
         private readonly Image alkuvalikonTaustakuva = LoadImage("mainmenu_1");
         private readonly Image pomminKuva = LoadImage("alienpommi");
         private readonly Image aselaatikkoKuva = LoadImage("aselaatikko1"); // Content-hakemistossa on vaihtoehtoinen kuva "aselaatikko2"
+        private readonly Image[] lopputekstinKuvat = LoadImages("credits1", "credits2", "credits3", "credits4", "credits5", "credits6", "credits7", "credits8", "credits9");
 
         /// <summary>
         /// Ladataan pelissä tarvittavat äänet
@@ -124,13 +125,14 @@ namespace AlienEscape
             ClearAll();
             IsPaused = false;
 
-            MultiSelectWindow alkuvalikko = new MultiSelectWindow("", "Aloita peli", "Valitse kenttä", "Kokoruututila" , "Lopeta");
+            MultiSelectWindow alkuvalikko = new MultiSelectWindow("", "Aloita peli", "Valitse kenttä", "Kokoruututila" , "Lopputekstit", "Lopeta");
             Add(alkuvalikko);
 
             alkuvalikko.AddItemHandler(0, LuoKentta, 1);
             alkuvalikko.AddItemHandler(1, LuoKenttavalikko);
             alkuvalikko.AddItemHandler(2, VaihdaFullScreenValikossa);
-            alkuvalikko.AddItemHandler(3, VahvistaLopetus, LuoAlkuvalikko);
+            alkuvalikko.AddItemHandler(3, LuoLopputekstit);
+            alkuvalikko.AddItemHandler(4, VahvistaLopetus, LuoAlkuvalikko);
 
             Level.Background.Image = alkuvalikonTaustakuva;
             Camera.ZoomToLevel();
@@ -432,9 +434,9 @@ namespace AlienEscape
             if (IsFullScreen) IsFullScreen = false;
             else IsFullScreen = true;
             Camera.ZoomToLevel();
-            nayttoHP1.Position = new Vector(Screen.Left + 100, Screen.Top - 50);
-            nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
-            nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
+            nayttoHP1.Position = new Vector(Screen.Right - 400, Screen.Top - 50);
+            nayttoHP2.Position = new Vector(Screen.Right - 300, Screen.Top - 50);
+            nayttoAarteet.Position = new Vector(Screen.Right - 160, Screen.Top - 50);
         }
 
 
@@ -894,7 +896,7 @@ namespace AlienEscape
             pelaaja1HP = new IntMeter(HP1);
             pelaaja1HP.MinValue = 0;
             nayttoHP1 = new Label();
-            nayttoHP1.Position = new Vector(Screen.Left + 100, Screen.Top - 50);
+            nayttoHP1.Position = new Vector(Screen.Right - 400, Screen.Top - 50);
             nayttoHP1.TextColor = Color.White;
             nayttoHP1.Color = Color.Red;
             nayttoHP1.IntFormatString = " HP = {0:D1} ";
@@ -911,7 +913,7 @@ namespace AlienEscape
             pelaaja2HP = new IntMeter(HP2);
             pelaaja2HP.MinValue = 0;
             nayttoHP2 = new Label();
-            nayttoHP2.Position = new Vector(Screen.Left + 200, Screen.Top - 50);
+            nayttoHP2.Position = new Vector(Screen.Right - 300, Screen.Top - 50);
             nayttoHP2.TextColor = Color.White;
             nayttoHP2.Color = Color.Blue;
             nayttoHP2.IntFormatString = " HP = {0:D1} ";
@@ -928,7 +930,7 @@ namespace AlienEscape
             aarteet = new IntMeter(Pisteet);
             aarteet.MaxValue = 10;
             nayttoAarteet = new Label();
-            nayttoAarteet.Position = new Vector(Screen.Left + 320, Screen.Top - 50);
+            nayttoAarteet.Position = new Vector(Screen.Right - 160, Screen.Top - 50);
             nayttoAarteet.TextColor = Color.Black;
             nayttoAarteet.Color = Color.Gold;
             nayttoAarteet.IntFormatString = " Aarteet = {0:D1} ";
@@ -1208,6 +1210,24 @@ namespace AlienEscape
             loppuvalikko.AddItemHandler(1, LuoKentta, 1);
             loppuvalikko.AddItemHandler(2, LuoAlkuvalikko);
             loppuvalikko.AddItemHandler(3, VahvistaLopetus, PeliLoppuu);
+        }
+
+
+        /// <summary>
+        /// Luodaan pelin lopputekstit
+        /// </summary>
+        private void LuoLopputekstit()
+        {
+            ClearAll();
+            GameObject tausta = new GameObject(20 * TILE_WIDTH, 12 * TILE_HEIGHT, Shape.Rectangle);
+            tausta.Animation = new Animation(lopputekstinKuvat);
+            Add(tausta);
+            tausta.Animation.FPS = 2;
+            tausta.Animation.Start();
+            Camera.ZoomToAllObjects();
+
+            Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
+            Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoAlkuvalikko, "Takaisin alkuvalikkoon");
         }
     }
 }
