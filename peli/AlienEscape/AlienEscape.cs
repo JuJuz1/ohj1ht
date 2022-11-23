@@ -13,7 +13,7 @@ using System.Transactions;
 namespace AlienEscape
 {
     /// @author Juuso Piippo & Elias Lehtinen
-    /// @version 17.11.2022
+    /// @version 23.11.2022
     /// 
     /// <summary>
     /// Kaksin pelattava tasohyppely- ja ongelmanratkaisupeli
@@ -55,6 +55,7 @@ namespace AlienEscape
         private Label nayttoHP1;
         private Label nayttoHP2;
         private Label nayttoAarteet;
+        private Label lopputekstit;
 
         /// <summary>
         /// Ladataan pelissä tarvittavat kuvat
@@ -448,6 +449,27 @@ namespace AlienEscape
             if (IsFullScreen) IsFullScreen = false;
             else IsFullScreen = true;
             LuoAlkuvalikko();
+        }
+
+
+        /// <summary>
+        /// Vaihdetaan lopputeksteissä kokoruudun tilaan
+        /// </summary>
+        private void VaihdaFullscreenLopputekstit()
+        {
+            if (IsFullScreen)
+            {
+                IsFullScreen = false;
+                lopputekstit.TextScale = new Vector(1, 1);
+            }
+            else
+            {
+                IsFullScreen = true;
+                lopputekstit.TextScale = new Vector(2, 2);
+            }
+            Camera.ZoomToAllObjects();
+            MessageDisplay.Clear();
+            MessageDisplay.Add("Esc - Takaisin alkuvalikkoon");
         }
 
 
@@ -1226,7 +1248,25 @@ namespace AlienEscape
             tausta.Animation.Start();
             Camera.ZoomToAllObjects();
 
-            Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullScreen, "Kokoruututila");
+            lopputekstit = new Label();
+            lopputekstit.Text = 
+                "Kiitos kun pelasit!\n\n" +
+                "Koodi yleisesti: Juuso Piippo ja Elias Lehtinen\n\n" +
+                "Kenttäsuunnittelu: Juuso Piippo\n\n" +
+                "Pelin tarina: Juuso Piippo\n\n" +
+                "Grafiikka ja äänet: Elias Lehtinen\n\n" +
+                "Käyttöliittymä: Elias Lehtinen";
+            lopputekstit.Color = new Color(0.3, 0.3, 0.3, 0.95);
+            lopputekstit.TextColor = Color.White;
+            lopputekstit.XMargin = 40;
+            lopputekstit.YMargin = 20;
+            Font fontCredits = new Font(36);
+            lopputekstit.Font = fontCredits;
+            Add(lopputekstit);
+
+            MessageDisplay.Add("Esc - Takaisin alkuvalikkoon");
+
+            Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullscreenLopputekstit, "Kokoruututila");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoAlkuvalikko, "Takaisin alkuvalikkoon");
         }
     }
