@@ -29,6 +29,7 @@ namespace AlienEscape
         private List<PhysicsObject> ovetLista = new List<PhysicsObject>();
         private List<PhysicsObject> aarteetLista = new List<PhysicsObject>();
         private List<GameObject> painikkeetLista = new List<GameObject>();
+        private GameObject avaruusalus;
         private GameObject vipu;
         private PhysicsObject hissi;
         private PhysicsObject exit;
@@ -46,7 +47,7 @@ namespace AlienEscape
         /// </summary>
         private const int TILE_WIDTH = 80;
         private const int TILE_HEIGHT = 80;
-        private const int MAX_KENTTA_NRO = 5; // TODO: Muutetaan MAX_KENTTA_NRO sitä mukaa, kun lisätään kenttiä
+        private const int MAX_KENTTA_NRO = 6; // TODO: Muutetaan MAX_KENTTA_NRO sitä mukaa, kun lisätään kenttiä
         private int kenttaNro = 1;
         private int HP1 = 3;
         private int HP2 = 3;
@@ -91,6 +92,8 @@ namespace AlienEscape
         private readonly Image alkuvalikonTaustakuva = LoadImage("mainmenu_1");
         private readonly Image pomminKuva = LoadImage("alienpommi");
         private readonly Image aselaatikkoKuva = LoadImage("aselaatikko1"); // Content-hakemistossa on vaihtoehtoinen kuva "aselaatikko2"
+        private readonly Image avaruusaluksenKuva = LoadImage("avaruusalus");
+        private readonly Image[] avaruusalusKaynnissaKuvat = LoadImages("avaruusalus_1", "avaruusalus_2", "avaruusalus_3");
         private readonly Image[] lopputekstinKuvat = LoadImages("credits1", "credits2", "credits3", "credits4", "credits5", "credits6", "credits7", "credits8", "credits9");
 
         /// <summary>
@@ -106,6 +109,7 @@ namespace AlienEscape
         private readonly SoundEffect vipuAani = LoadSoundEffect("vipu");
         private readonly SoundEffect kavelyAani = LoadSoundEffect("kavely");
         private readonly SoundEffect alienAani = LoadSoundEffect("aiai_alien"); // Content-hakemistossa on vaihtoehtoinen ääni "aiai_alien2"
+        private readonly SoundEffect avaruusalusAani = LoadSoundEffect("avaruusalus");
 
         /// <summary>
         /// Peli aloitetaan ensimmäisellä kentällä
@@ -146,7 +150,7 @@ namespace AlienEscape
         /// </summary>
         private void LuoKenttavalikko()
         {
-            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2", "Kenttä 3", "Kenttä 4", "Kenttä 5", "Takaisin");
+            MultiSelectWindow kenttavalikko = new MultiSelectWindow("Valitse kenttä", "Kenttä 1", "Kenttä 2", "Kenttä 3", "Kenttä 4", "Kenttä 5", "Kentta 6", "Takaisin");
             Add(kenttavalikko);
 
             kenttavalikko.AddItemHandler(0, LuoKentta, 1);
@@ -154,7 +158,8 @@ namespace AlienEscape
             kenttavalikko.AddItemHandler(2, LuoKentta, 3);
             kenttavalikko.AddItemHandler(3, LuoKentta, 4);
             kenttavalikko.AddItemHandler(4, LuoKentta, 5);
-            kenttavalikko.AddItemHandler(5, LuoAlkuvalikko);
+            kenttavalikko.AddItemHandler(5, LuoKentta, 6);
+            kenttavalikko.AddItemHandler(6, LuoAlkuvalikko);
         }
 
 
@@ -243,6 +248,7 @@ namespace AlienEscape
             kentta.SetTileMethod('*', LuoVihollinen);
             kentta.SetTileMethod('E', LuoExit);
             kentta.SetTileMethod('L', LuoAseLaatikko);
+            kentta.SetTileMethod('O', LuoAvaruusalus);
 
             kentta.Execute(TILE_WIDTH, TILE_HEIGHT); // Luodaan kenttä
         }
@@ -894,7 +900,7 @@ namespace AlienEscape
         /// <summary>
         /// Luodaan aselaatikko
         /// </summary>
-        /// <param name="paikka">Piste, johon pelaaja luodaan</param>
+        /// <param name="paikka">Piste, johon aselaatikko luodaan</param>
         /// <param name="leveys">1 ruudun leveys pelikentällä</param>
         /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
         private void LuoAseLaatikko(Vector paikka, double leveys, double korkeus)
@@ -907,6 +913,25 @@ namespace AlienEscape
             aselaatikko.Image.Scaling = ImageScaling.Nearest;
             aselaatikko.IgnoresCollisionResponse = true;
             Add(aselaatikko);
+        }
+
+
+        /// <summary>
+        /// Luodaan avaruusalus, jonka leveys on 4 ruutua ja korkeus 2 ruutua.
+        /// Avaruusalus luodaan annetun ruudun vasemmalla puolella olevan ja sen yläpuolella
+        /// olevan ruudun väliin.
+        /// </summary>
+        /// <param name="paikka">Ruutu, johon avaruusalus luodaan</param>
+        /// <param name="leveys">1 ruudun leveys pelikentällä</param>
+        /// <param name="korkeus">1 ruudun korkeus pelikentällä</param>
+        private void LuoAvaruusalus(Vector paikka, double leveys, double korkeus)
+        {
+            avaruusalus = new GameObject(4*leveys, 2*korkeus, Shape.Rectangle);
+            avaruusalus.X = paikka.X - leveys * 0.5;
+            avaruusalus.Y = paikka.Y + korkeus * 0.5;
+            avaruusalus.Image = avaruusaluksenKuva;
+            avaruusalus.Image.Scaling = ImageScaling.Nearest;
+            Add(avaruusalus);
         }
 
 
@@ -1081,6 +1106,20 @@ namespace AlienEscape
                     AktivoiAseet();
                 }
             }
+
+            if (avaruusalus != null)
+            {
+                if ((Etaisyys(pelaaja1, avaruusalus) < TILE_WIDTH) && (Etaisyys(pelaaja2,avaruusalus) < TILE_WIDTH))
+                {
+                    pelaaja1.Destroy();
+                    pelaaja2.Destroy();
+                    avaruusalus.Animation = new Animation(avaruusalusKaynnissaKuvat);
+                    avaruusalus.Animation.Start();
+                    MediaPlayer.Play("avaruusalus");
+                    MediaPlayer.IsRepeating = true;
+                    avaruusalus.MoveTo(new Vector(Level.Center.X, Level.Top), 200, LuoLopputekstit);
+                }
+            }
         }
 
 
@@ -1246,7 +1285,6 @@ namespace AlienEscape
             Add(tausta);
             tausta.Animation.FPS = 2;
             tausta.Animation.Start();
-            Camera.ZoomToAllObjects();
 
             lopputekstit = new Label();
             lopputekstit.Text = 
@@ -1260,14 +1298,19 @@ namespace AlienEscape
             lopputekstit.TextColor = Color.White;
             lopputekstit.XMargin = 40;
             lopputekstit.YMargin = 20;
-            Font fontCredits = new Font(36);
+            Font fontCredits = new Font(36); // Luo uuden oletusarvoa suuremman fontin
             lopputekstit.Font = fontCredits;
+            if (IsFullScreen) lopputekstit.TextScale = new Vector(2, 2); // Skaalaa tekstiä suuremmaksi
             Add(lopputekstit);
 
             MessageDisplay.Add("Esc - Takaisin alkuvalikkoon");
 
             Keyboard.Listen(Key.F11, ButtonState.Pressed, VaihdaFullscreenLopputekstit, "Kokoruututila");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, LuoAlkuvalikko, "Takaisin alkuvalikkoon");
+            Camera.ZoomToLevel();
+            Camera.ZoomToAllObjects();
+            MediaPlayer.Play("taustamusiikki1");
+            MediaPlayer.Volume = 0.5;
         }
     }
 }
